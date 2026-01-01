@@ -503,5 +503,46 @@ namespace wpfkiro20260101
                 }
             }
         }
+
+        // 添加訂閱按鈕點擊事件
+        private async void AddSubscription_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 打開添加訂閱對話框
+                var addWindow = new AddSubscriptionWindow
+                {
+                    Owner = Window.GetWindow(this)
+                };
+
+                if (addWindow.ShowDialog() == true && addWindow.NewSubscription != null)
+                {
+                    // 使用 CrudManager 創建訂閱
+                    var crudManager = BackendServiceFactory.CreateCrudManager();
+                    var createResult = await crudManager.CreateSubscriptionAsync(addWindow.NewSubscription);
+
+                    if (createResult.Success)
+                    {
+                        MessageBox.Show(
+                            $"訂閱「{addWindow.NewSubscription.SubscriptionName}」已成功添加！",
+                            "成功",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
+
+                        // 重新載入資料以顯示新添加的訂閱
+                        await LoadSubscriptionData();
+                    }
+                    else
+                    {
+                        ShowErrorMessage($"添加訂閱失敗：{createResult.ErrorMessage}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"添加訂閱時發生錯誤：{ex.Message}");
+            }
+        }
     }
 }
