@@ -44,12 +44,14 @@ namespace wpfkiro20260101
 
         private void NavigateToSubscription(object sender, RoutedEventArgs e)
         {
-            MainFrame.Navigate(new SubscriptionPage());
+            var subscriptionPage = new SubscriptionPage();
+            MainFrame.Navigate(subscriptionPage);
         }
 
         private void NavigateToFood(object sender, RoutedEventArgs e)
         {
-            MainFrame.Navigate(new FoodPage());
+            var foodPage = new FoodPage();
+            MainFrame.Navigate(foodPage);
         }
 
         private void NavigateToSettings(object sender, RoutedEventArgs e)

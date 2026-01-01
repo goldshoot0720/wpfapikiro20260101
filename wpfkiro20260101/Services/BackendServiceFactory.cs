@@ -12,6 +12,7 @@ namespace wpfkiro20260101.Services
                 BackendServiceType.Supabase => new SupabaseService(),
                 BackendServiceType.NHost => new NHostService(),
                 BackendServiceType.Contentful => new ContentfulService(),
+                BackendServiceType.Back4App => new Back4AppService(),
                 BackendServiceType.MySQL => new MySQLService(),
                 _ => throw new ArgumentException($"不支援的後端服務類型: {serviceType}")
             };

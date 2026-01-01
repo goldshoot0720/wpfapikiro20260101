@@ -1,6 +1,6 @@
 # 鋒兄AI資訊系統 (WPF版本)
 
-一個基於WPF技術構建的現代化資訊管理系統，提供智能化的影片、圖片、訂閱和食品管理功能。
+一個基於WPF技術構建的現代化資訊管理系統，整合 **Appwrite** 後端服務，提供智能化的影片、圖片、訂閱和食品管理功能。
 
 ## 🌟 系統特色
 
@@ -8,12 +8,14 @@
 - **多功能模塊**：涵蓋影片庫、圖片庫、訂閱管理、食品管理等
 - **響應式界面**：適配不同屏幕尺寸
 - **智能管理**：支援智能分類和快速搜尋
+- **🔥 Appwrite 整合**：完整的後端即服務 (BaaS) 支援
+- **多後端支援**：支援 5 種後端服務選擇
 
 ## 📋 功能模塊
 
 ### 🏠 首頁 (HomePage)
 - 系統介紹和版權信息
-- 技術棧展示（前端：SolidJS + Tailwind CSS，後端：Strapi CMS）
+- 技術棧展示（前端：SolidJS + Tailwind CSS，後端：Appwrite BaaS）
 - 功能模塊快速導航
 
 ### 📊 儀表板 (DashboardPage)
@@ -46,13 +48,32 @@
 - 庫存數量追蹤
 - 分類和標籤系統
 
+### ⚙️ 系統設定 (SettingsPage)
+- **多後端服務支援**：Appwrite、Supabase、NHost、Contentful、MySQL
+- **智慧配置**：自動填充預設值和動態標籤
+- **連線測試**：即時驗證後端服務連線狀態
+- **設定持久化**：自動儲存和載入配置
+
+### 🔥 Appwrite 測試 (AppwriteTestPage)
+- **連線管理**：測試和初始化 Appwrite 服務
+- **用戶管理**：創建用戶、獲取用戶資訊
+- **資料庫操作**：管理資料庫、集合和文檔
+- **儲存管理**：管理檔案儲存桶
+- **即時結果**：完整的操作結果顯示
+
 ## 🛠️ 技術棧
 
 - **框架**：.NET 10.0 + WPF
 - **語言**：C# 12.0
 - **UI技術**：XAML + 現代化設計
-- **架構**：MVVM模式
+- **架構**：MVVM模式 + 服務層架構
+- **後端服務**：Appwrite BaaS (主要)
+- **套件管理**：NuGet
 - **版本控制**：Git
+
+### 🔧 核心套件
+- `Appwrite` (0.7.0) - Appwrite .NET SDK
+- `System.Text.Json` (9.0.0) - JSON 序列化
 
 ## 🚀 快速開始
 
@@ -60,6 +81,7 @@
 - .NET 10.0 SDK
 - Visual Studio 2022 或 Visual Studio Code
 - Windows 10/11
+- Appwrite 帳號 (推薦使用 [Appwrite Cloud](https://cloud.appwrite.io))
 
 ### 安裝步驟
 
@@ -79,7 +101,12 @@
    dotnet build
    ```
 
-4. **運行應用**
+4. **配置 Appwrite**
+   - 創建 Appwrite 專案 ([詳細指南](wpfkiro20260101/README_Appwrite.md))
+   - 記錄 API Endpoint 和 Project ID
+   - 啟動應用程式後到「系統設定」進行配置
+
+5. **運行應用**
    ```bash
    dotnet run --project wpfkiro20260101
    ```
@@ -89,18 +116,32 @@
 ```
 wpfkiro20260101/
 ├── wpfkiro20260101/
-│   ├── MainWindow.xaml          # 主窗口
-│   ├── MainWindow.xaml.cs       # 主窗口邏輯
-│   ├── HomePage.xaml            # 首頁
-│   ├── DashboardPage.xaml       # 儀表板
-│   ├── VideosPage.xaml          # 影片庫
-│   ├── PhotosPage.xaml          # 圖片庫
-│   ├── SubscriptionPage.xaml    # 訂閱管理
-│   ├── FoodPage.xaml            # 食品管理
-│   ├── App.xaml                 # 應用程序配置
-│   └── wpfkiro20260101.csproj   # 項目文件
-├── README.md                    # 項目說明
-└── wpfkiro20260101.slnx        # 解決方案文件
+│   ├── MainWindow.xaml              # 主窗口
+│   ├── MainWindow.xaml.cs           # 主窗口邏輯
+│   ├── HomePage.xaml                # 首頁
+│   ├── DashboardPage.xaml           # 儀表板
+│   ├── VideosPage.xaml              # 影片庫
+│   ├── PhotosPage.xaml              # 圖片庫
+│   ├── SubscriptionPage.xaml        # 訂閱管理
+│   ├── FoodPage.xaml                # 食品管理
+│   ├── SettingsPage.xaml            # 系統設定
+│   ├── AppwriteTestPage.xaml        # Appwrite 測試
+│   ├── AppSettings.cs               # 設定管理
+│   ├── Services/                    # 服務層
+│   │   ├── IBackendService.cs       # 後端服務介面
+│   │   ├── AppwriteService.cs       # Appwrite 服務實作
+│   │   ├── AppwriteManager.cs       # Appwrite 管理器
+│   │   ├── BackendServiceFactory.cs # 服務工廠
+│   │   ├── SupabaseService.cs       # Supabase 服務
+│   │   ├── NHostService.cs          # NHost 服務
+│   │   ├── ContentfulService.cs     # Contentful 服務
+│   │   └── MySQLService.cs          # MySQL 服務
+│   ├── README_Settings.md           # 設定功能說明
+│   ├── README_Appwrite.md           # Appwrite 整合指南
+│   ├── App.xaml                     # 應用程序配置
+│   └── wpfkiro20260101.csproj       # 項目文件
+├── README.md                        # 項目說明
+└── wpfkiro20260101.slnx            # 解決方案文件
 ```
 
 ## 🎨 界面預覽
@@ -116,27 +157,47 @@ wpfkiro20260101/
 - **到期提醒**：自動計算和提醒功能
 - **搜尋篩選**：快速定位所需內容
 - **批量操作**：提高管理效率
+- **🔥 Appwrite 整合**：完整的 BaaS 功能支援
 
 ## 🔧 開發說明
+
+### Appwrite 整合
+本系統以 **Appwrite** 作為主要後端服務，提供：
+- 用戶認證和管理
+- 資料庫操作 (NoSQL)
+- 檔案儲存和管理
+- 即時功能
+- 雲端函數
+
+詳細整合指南請參考：[Appwrite 整合指南](wpfkiro20260101/README_Appwrite.md)
 
 ### 添加新功能模塊
 1. 創建新的Page文件（.xaml + .xaml.cs）
 2. 在MainWindow.xaml中添加導航按鈕
 3. 在MainWindow.xaml.cs中添加導航邏輯
 4. 實現具體的功能邏輯
+5. 整合 Appwrite 服務 (如需要)
 
 ### 自定義樣式
 - 修改Page.Resources中的樣式定義
 - 調整漸變背景色彩
 - 自定義卡片和按鈕樣式
 
+### 後端服務擴展
+要添加新的後端服務：
+1. 在 `BackendServiceType` 枚舉中添加新類型
+2. 創建實作 `IBackendService` 的新服務類
+3. 在 `BackendServiceFactory` 中添加對應的創建邏輯
+4. 在設定頁面中添加新的選項
+
 ## 📄 版權信息
 
 **鋒兄達習公開資訊 © 版權所有 2025 - 2125**
 
 ### 技術支持
-- **前端技術**：SolidJS (SolidStart)、Netlify、Tailwind CSS
-- **後端技術**：Strapi CMS、RESTful API
+- **前端技術**：WPF + XAML、現代化 UI 設計
+- **後端技術**：Appwrite BaaS、RESTful API
+- **架構模式**：MVVM + 服務層
 
 ## 🤝 貢獻指南
 

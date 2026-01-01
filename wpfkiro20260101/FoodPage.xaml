@@ -45,13 +45,27 @@
                         </Border>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="食品管理系統" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                            <TextBlock Text="管理您的食品存放和保質期訊息" FontSize="14" Foreground="White" Opacity="0.8"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="管理您的食品存放和保質期訊息" FontSize="14" Foreground="White" Opacity="0.8"/>
+                                <TextBlock x:Name="BackendServiceLabel" Text="" FontSize="12" Foreground="#FEF3C7" 
+                                         Margin="10,0,0,0" FontWeight="Bold"/>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                     
                     <Button Grid.Column="2" Content="添加食品" Background="#EF4444" Foreground="White" 
                           BorderThickness="0" Padding="15,8" Cursor="Hand"/>
+                    <Button x:Name="RefreshDataButton" Content="🔄 重新載入" Background="#6366F1" Foreground="White" 
+                          BorderThickness="0" Padding="15,8" Margin="10,0,0,0" Cursor="Hand" Click="RefreshData_Click"/>
                 </Grid>
+                
+                <!-- 資料來源狀態顯示 -->
+                <Border Background="#FFFFFF" CornerRadius="8" Padding="15" Margin="0,0,0,20" Opacity="0.9">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📊" FontSize="16" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="DataSourceInfo" Text="正在載入資料..." FontSize="14" Foreground="#374151"/>
+                    </StackPanel>
+                </Border>
                 
                 <!-- 搜尋和批量操作 -->
                 <Grid Margin="0,0,0,30">
@@ -79,59 +93,18 @@
                 </Grid>
                 
                 <!-- 食品項目列表 -->
-                <UniformGrid Columns="2" Margin="0,20">
-                    <!-- 食品項目1 -->
-                    <Border Style="{StaticResource FoodCardStyle}">
-                        <StackPanel Margin="15">
-                            <Border Background="#F3F4F6" CornerRadius="8" Height="120" Margin="0,0,0,15">
-                                <TextBlock Text="🥬" FontSize="48" Foreground="#10B981" 
-                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            
-                            <TextBlock Text="【張君雅】五香海苔休閒丸子" FontSize="14" FontWeight="Bold" Foreground="#374151" Margin="0,0,0,10"/>
-                            <TextBlock Text="數量: 3" FontSize="12" Foreground="#6B7280" Margin="0,0,0,5"/>
-                            <TextBlock Text="到期日期: 2026-01-06" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
-                            <TextBlock Text="剩餘天數: 15 天" FontSize="12" Foreground="#10B981" FontWeight="Bold" Margin="0,0,0,15"/>
-                            
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Content="編輯" Background="#6366F1" Foreground="White" 
-                                      BorderThickness="0" Padding="0,8" Margin="0,0,5,0" Cursor="Hand"/>
-                                <Button Grid.Column="1" Content="🗑️" Background="#EF4444" Foreground="White" 
-                                      BorderThickness="0" Padding="8" Cursor="Hand"/>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-                    
-                    <!-- 食品項目2 -->
-                    <Border Style="{StaticResource FoodCardStyle}">
-                        <StackPanel Margin="15">
-                            <Border Background="#F3F4F6" CornerRadius="8" Height="120" Margin="0,0,0,15">
-                                <TextBlock Text="🍘" FontSize="48" Foreground="#F59E0B" 
-                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            
-                            <TextBlock Text="【張君雅】日式串燒休閒丸子" FontSize="14" FontWeight="Bold" Foreground="#374151" Margin="0,0,0,10"/>
-                            <TextBlock Text="數量: 6" FontSize="12" Foreground="#6B7280" Margin="0,0,0,5"/>
-                            <TextBlock Text="到期日期: 2026-01-07" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
-                            <TextBlock Text="剩餘天數: 16 天" FontSize="12" Foreground="#10B981" FontWeight="Bold" Margin="0,0,0,15"/>
-                            
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Content="編輯" Background="#6366F1" Foreground="White" 
-                                      BorderThickness="0" Padding="0,8" Margin="0,0,5,0" Cursor="Hand"/>
-                                <Button Grid.Column="1" Content="🗑️" Background="#EF4444" Foreground="White" 
-                                      BorderThickness="0" Padding="8" Cursor="Hand"/>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
+                <UniformGrid x:Name="FoodItemsContainer" Columns="2" Margin="0,20">
+                    <!-- 動態載入的食品項目將在這裡顯示 -->
                 </UniformGrid>
+                
+                <!-- 無資料訊息 -->
+                <Border x:Name="NoFoodDataMessage" Style="{StaticResource FoodCardStyle}" Visibility="Collapsed" HorizontalAlignment="Center" MaxWidth="400">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
+                        <TextBlock Text="🍎" FontSize="48" HorizontalAlignment="Center" Foreground="#9CA3AF" Margin="0,0,0,10"/>
+                        <TextBlock Text="目前沒有食品資料" FontSize="16" HorizontalAlignment="Center" Foreground="#6B7280" FontWeight="Bold"/>
+                        <TextBlock Text="點擊上方的「添加食品」按鈕來新增食品項目" FontSize="12" HorizontalAlignment="Center" Foreground="#9CA3AF" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>

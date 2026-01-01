@@ -46,13 +46,27 @@
                         </Border>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="訂閱管理系統" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                            <TextBlock Text="管理您的各項訂閱服務和會員資訊" FontSize="14" Foreground="White" Opacity="0.8"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="管理您的各項訂閱服務和會員資訊" FontSize="14" Foreground="White" Opacity="0.8"/>
+                                <TextBlock x:Name="BackendServiceLabel" Text="" FontSize="12" Foreground="#FEF3C7" 
+                                         Margin="10,0,0,0" FontWeight="Bold"/>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                     
                     <Button Grid.Column="2" Content="添加訂閱" Background="#EF4444" Foreground="White" 
                           BorderThickness="0" Padding="15,8" Cursor="Hand"/>
+                    <Button x:Name="RefreshDataButton" Content="🔄 重新載入" Background="#6366F1" Foreground="White" 
+                          BorderThickness="0" Padding="15,8" Margin="10,0,0,0" Cursor="Hand" Click="RefreshData_Click"/>
                 </Grid>
+                
+                <!-- 資料來源狀態顯示 -->
+                <Border Background="#FFFFFF" CornerRadius="8" Padding="15" Margin="0,0,0,20" Opacity="0.9">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📊" FontSize="16" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="DataSourceInfo" Text="正在載入資料..." FontSize="14" Foreground="#374151"/>
+                    </StackPanel>
+                </Border>
                 
                 <!-- 搜尋和批量操作 -->
                 <Grid Margin="0,0,0,30">
@@ -80,75 +94,14 @@
                 </Grid>
                 
                 <!-- 訂閱項目列表 -->
-                <StackPanel>
-                    <!-- 訂閱項目1 -->
-                    <Border Style="{StaticResource SubscriptionCardStyle}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            
-                            <!-- 服務類型標籤 -->
-                            <Border Grid.Column="0" Background="#F59E0B" CornerRadius="6" Padding="8,4" Margin="0,0,15,0">
-                                <TextBlock Text="影音娛樂" FontSize="12" FontWeight="Bold" Foreground="White"/>
-                            </Border>
-                            
-                            <!-- 訂閱信息 -->
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="天虎/實信訊/心臟內科" FontSize="16" FontWeight="Bold" Foreground="#374151"/>
-                                <TextBlock Text="網站: https://www.tcmg.com.tw/index.php/main/schedule_time?id=18" 
-                                         FontSize="12" Foreground="#6B7280" Margin="0,2,0,0"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                    <TextBlock Text="價格: NT$ 530" FontSize="12" Foreground="#374151" Margin="0,0,15,0"/>
-                                    <TextBlock Text="下次付款: 2025-12-26" FontSize="12" Foreground="#374151" Margin="0,0,15,0"/>
-                                    <TextBlock Text="剩餘天數: 1 天" FontSize="12" Foreground="#EF4444" FontWeight="Bold"/>
-                                </StackPanel>
-                            </StackPanel>
-                            
-                            <!-- 操作按鈕 -->
-                            <Button Grid.Column="2" Content="編輯" Background="#6366F1" Foreground="White" 
-                                  BorderThickness="0" Padding="12,6" Margin="10,0" Cursor="Hand"/>
-                            <Button Grid.Column="3" Content="刪除" Background="#EF4444" Foreground="White" 
-                                  BorderThickness="0" Padding="12,6" Cursor="Hand"/>
-                        </Grid>
-                    </Border>
-                    
-                    <!-- 訂閱項目2 -->
-                    <Border Style="{StaticResource SubscriptionCardStyle}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            
-                            <!-- 服務類型標籤 -->
-                            <Border Grid.Column="0" Background="#10B981" CornerRadius="6" Padding="8,4" Margin="0,0,15,0">
-                                <TextBlock Text="軟體" FontSize="12" FontWeight="Bold" Foreground="White"/>
-                            </Border>
-                            
-                            <!-- 訂閱信息 -->
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="kiro pro" FontSize="16" FontWeight="Bold" Foreground="#374151"/>
-                                <TextBlock Text="網站: https://app.kiro.dev/account/" 
-                                         FontSize="12" Foreground="#6B7280" Margin="0,2,0,0"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                    <TextBlock Text="價格: NT$ 640" FontSize="12" Foreground="#374151" Margin="0,0,15,0"/>
-                                    <TextBlock Text="下次付款: 2026-01-01" FontSize="12" Foreground="#374151" Margin="0,0,15,0"/>
-                                    <TextBlock Text="剩餘天數: 10 天" FontSize="12" Foreground="#10B981" FontWeight="Bold"/>
-                                </StackPanel>
-                            </StackPanel>
-                            
-                            <!-- 操作按鈕 -->
-                            <Button Grid.Column="2" Content="編輯" Background="#6366F1" Foreground="White" 
-                                  BorderThickness="0" Padding="12,6" Margin="10,0" Cursor="Hand"/>
-                            <Button Grid.Column="3" Content="刪除" Background="#EF4444" Foreground="White" 
-                                  BorderThickness="0" Padding="12,6" Cursor="Hand"/>
-                        </Grid>
+                <StackPanel x:Name="SubscriptionItemsContainer">
+                    <!-- 動態載入的訂閱項目將在這裡顯示 -->
+                    <Border Style="{StaticResource SubscriptionCardStyle}" x:Name="NoDataMessage" Visibility="Collapsed">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
+                            <TextBlock Text="📋" FontSize="48" HorizontalAlignment="Center" Foreground="#9CA3AF" Margin="0,0,0,10"/>
+                            <TextBlock Text="目前沒有訂閱資料" FontSize="16" HorizontalAlignment="Center" Foreground="#6B7280" FontWeight="Bold"/>
+                            <TextBlock Text="點擊上方的「添加訂閱」按鈕來新增訂閱項目" FontSize="12" HorizontalAlignment="Center" Foreground="#9CA3AF" Margin="0,5,0,0"/>
+                        </StackPanel>
                     </Border>
                 </StackPanel>
             </StackPanel>
