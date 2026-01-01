@@ -12,7 +12,9 @@ namespace wpfkiro20260101
         NHost,
         Contentful,
         Back4App,
-        MySQL
+        MySQL,
+        Strapi,
+        Sanity
     }
 
     public class AppSettings
@@ -71,7 +73,9 @@ namespace wpfkiro20260101
 
             public static class Supabase
             {
-                public const string ApiUrl = "https://your-project.supabase.co";
+                public const string ApiUrl = "https://lobezwpworbfktlkxuyo.supabase.co";
+                public const string ProjectId = "lobezwpworbfktlkxuyo";
+                public const string ApiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvYmV6d3B3b3JiZmt0bGt4dXlvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzI1ODU5MSwiZXhwIjoyMDgyODM0NTkxfQ.tFcCP7kvcfV1CznhIHXBF0TenGlYD1XRlAWdCYYEnlc";
             }
 
             public static class NHost
@@ -96,6 +100,20 @@ namespace wpfkiro20260101
             {
                 public const string ApiUrl = "localhost:3306";
                 public const string ProjectId = "your-database-name";
+            }
+
+            public static class Strapi
+            {
+                public const string ApiUrl = "http://localhost:1337";
+                public const string ProjectId = "your-strapi-project";
+                public const string ApiKey = "your-strapi-api-token";
+            }
+
+            public static class Sanity
+            {
+                public const string ApiUrl = "https://your-project.api.sanity.io";
+                public const string ProjectId = "your-sanity-project-id";
+                public const string ApiKey = "your-sanity-token";
             }
         }
 
@@ -193,6 +211,8 @@ namespace wpfkiro20260101
                 BackendServiceType.Contentful => Defaults.Contentful.ApiUrl,
                 BackendServiceType.Back4App => Defaults.Back4App.ApiUrl,
                 BackendServiceType.MySQL => Defaults.MySQL.ApiUrl,
+                BackendServiceType.Strapi => Defaults.Strapi.ApiUrl,
+                BackendServiceType.Sanity => Defaults.Sanity.ApiUrl,
                 _ => ""
             };
         }
@@ -202,10 +222,25 @@ namespace wpfkiro20260101
             return BackendService switch
             {
                 BackendServiceType.Appwrite => Defaults.Appwrite.ProjectId,
+                BackendServiceType.Supabase => Defaults.Supabase.ProjectId,
                 BackendServiceType.NHost => Defaults.NHost.ProjectId,
                 BackendServiceType.Contentful => Defaults.Contentful.ProjectId,
                 BackendServiceType.Back4App => Defaults.Back4App.ProjectId,
                 BackendServiceType.MySQL => Defaults.MySQL.ProjectId,
+                BackendServiceType.Strapi => Defaults.Strapi.ProjectId,
+                BackendServiceType.Sanity => Defaults.Sanity.ProjectId,
+                _ => ""
+            };
+        }
+
+        public string GetDefaultApiKey()
+        {
+            return BackendService switch
+            {
+                BackendServiceType.Appwrite => Defaults.Appwrite.ApiKey,
+                BackendServiceType.Supabase => Defaults.Supabase.ApiKey,
+                BackendServiceType.Strapi => Defaults.Strapi.ApiKey,
+                BackendServiceType.Sanity => Defaults.Sanity.ApiKey,
                 _ => ""
             };
         }
@@ -227,6 +262,8 @@ namespace wpfkiro20260101
                 BackendServiceType.Contentful => "Contentful",
                 BackendServiceType.Back4App => "Back4App",
                 BackendServiceType.MySQL => "MySQL",
+                BackendServiceType.Strapi => "Strapi",
+                BackendServiceType.Sanity => "Sanity",
                 _ => "未知"
             };
         }

@@ -45,6 +45,8 @@ namespace wpfkiro20260101
             ContentfulOption.Checked -= BackendOption_Checked;
             Back4AppOption.Checked -= BackendOption_Checked;
             MySQLOption.Checked -= BackendOption_Checked;
+            StrapiOption.Checked -= BackendOption_Checked;
+            SanityOption.Checked -= BackendOption_Checked;
             
             // 先清除所有選項
             AppwriteOption.IsChecked = false;
@@ -53,6 +55,8 @@ namespace wpfkiro20260101
             ContentfulOption.IsChecked = false;
             Back4AppOption.IsChecked = false;
             MySQLOption.IsChecked = false;
+            StrapiOption.IsChecked = false;
+            SanityOption.IsChecked = false;
             
             // 載入後端服務選擇
             switch (settings.BackendService)
@@ -81,6 +85,14 @@ namespace wpfkiro20260101
                     MySQLOption.IsChecked = true;
                     System.Diagnostics.Debug.WriteLine("設定 MySQL 為選中");
                     break;
+                case BackendServiceType.Strapi:
+                    StrapiOption.IsChecked = true;
+                    System.Diagnostics.Debug.WriteLine("設定 Strapi 為選中");
+                    break;
+                case BackendServiceType.Sanity:
+                    SanityOption.IsChecked = true;
+                    System.Diagnostics.Debug.WriteLine("設定 Sanity 為選中");
+                    break;
                 default:
                     System.Diagnostics.Debug.WriteLine($"未知的後端服務類型: {settings.BackendService}");
                     // 如果是未知類型，預設選擇 Appwrite
@@ -95,6 +107,8 @@ namespace wpfkiro20260101
             ContentfulOption.Checked += BackendOption_Checked;
             Back4AppOption.Checked += BackendOption_Checked;
             MySQLOption.Checked += BackendOption_Checked;
+            StrapiOption.Checked += BackendOption_Checked;
+            SanityOption.Checked += BackendOption_Checked;
             
             // 驗證選擇狀態
             System.Diagnostics.Debug.WriteLine($"RadioButton 狀態驗證:");
@@ -104,6 +118,8 @@ namespace wpfkiro20260101
             System.Diagnostics.Debug.WriteLine($"Contentful: {ContentfulOption.IsChecked}");
             System.Diagnostics.Debug.WriteLine($"Back4App: {Back4AppOption.IsChecked}");
             System.Diagnostics.Debug.WriteLine($"MySQL: {MySQLOption.IsChecked}");
+            System.Diagnostics.Debug.WriteLine($"Strapi: {StrapiOption.IsChecked}");
+            System.Diagnostics.Debug.WriteLine($"Sanity: {SanityOption.IsChecked}");
 
             // 載入連線設定
             ApiUrlTextBox.Text = settings.ApiUrl;
@@ -111,6 +127,26 @@ namespace wpfkiro20260101
             ApiKeyPasswordBox.Password = settings.ApiKey;
             DatabaseIdTextBox.Text = settings.DatabaseId;
             BucketIdTextBox.Text = settings.BucketId;
+
+            // 特別處理 Supabase 設定，確保使用正確的值
+            if (settings.BackendService == BackendServiceType.Supabase)
+            {
+                // 強制使用正確的 Supabase 設定
+                if (settings.ProjectId != AppSettings.Defaults.Supabase.ProjectId ||
+                    settings.ApiUrl != AppSettings.Defaults.Supabase.ApiUrl)
+                {
+                    System.Diagnostics.Debug.WriteLine("檢測到舊的 Supabase 設定，正在更新...");
+                    settings.ApiUrl = AppSettings.Defaults.Supabase.ApiUrl;
+                    settings.ProjectId = AppSettings.Defaults.Supabase.ProjectId;
+                    settings.ApiKey = AppSettings.Defaults.Supabase.ApiKey;
+                    settings.Save();
+                    
+                    // 更新界面顯示
+                    ApiUrlTextBox.Text = settings.ApiUrl;
+                    ProjectIdTextBox.Text = settings.ProjectId;
+                    ApiKeyPasswordBox.Password = settings.ApiKey;
+                }
+            }
 
             // 根據選擇的服務更新欄位顯示和預設值
             UpdateFieldsForService(settings.BackendService);
@@ -138,6 +174,10 @@ namespace wpfkiro20260101
                     settings.BackendService = BackendServiceType.Back4App;
                 else if (MySQLOption.IsChecked == true)
                     settings.BackendService = BackendServiceType.MySQL;
+                else if (StrapiOption.IsChecked == true)
+                    settings.BackendService = BackendServiceType.Strapi;
+                else if (SanityOption.IsChecked == true)
+                    settings.BackendService = BackendServiceType.Sanity;
 
                 // 調試：顯示將要儲存的後端服務
                 System.Diagnostics.Debug.WriteLine($"儲存後端服務: {settings.BackendService}");
@@ -164,27 +204,67 @@ namespace wpfkiro20260101
         {
             try
             {
-                // 強制重新載入設定
-                AppSettings.ReloadSettings();
-                var settings = AppSettings.Instance;
+                // 獲取當前界面上選擇的後端服務
+                BackendServiceType currentSelectedService = BackendServiceType.Appwrite;
                 
-                // 讀取原始 JSON 檔案內容
+                if (AppwriteOption.IsChecked == true)
+                    currentSelectedService = BackendServiceType.Appwrite;
+                else if (SupabaseOption.IsChecked == true)
+                    currentSelectedService = BackendServiceType.Supabase;
+                else if (NHostOption.IsChecked == true)
+                    currentSelectedService = BackendServiceType.NHost;
+                else if (ContentfulOption.IsChecked == true)
+                    currentSelectedService = BackendServiceType.Contentful;
+                else if (Back4AppOption.IsChecked == true)
+                    currentSelectedService = BackendServiceType.Back4App;
+                else if (MySQLOption.IsChecked == true)
+                    currentSelectedService = BackendServiceType.MySQL;
+                else if (StrapiOption.IsChecked == true)
+                    currentSelectedService = BackendServiceType.Strapi;
+                else if (SanityOption.IsChecked == true)
+                    currentSelectedService = BackendServiceType.Sanity;
+
+                // 獲取當前界面上的設定值
+                var currentSettings = new
+                {
+                    BackendService = (int)currentSelectedService,
+                    ApiUrl = ApiUrlTextBox.Text,
+                    ProjectId = ProjectIdTextBox.Text,
+                    ApiKey = ApiKeyPasswordBox.Password,
+                    DatabaseId = DatabaseIdTextBox.Text,
+                    BucketId = BucketIdTextBox.Text
+                };
+
+                // 序列化當前設定為 JSON
+                var currentJson = System.Text.Json.JsonSerializer.Serialize(currentSettings, new System.Text.Json.JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+
+                // 讀取已儲存的設定檔案內容
                 var settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "wpfkiro20260101", "settings.json");
-                var jsonContent = File.Exists(settingsPath) ? File.ReadAllText(settingsPath) : "檔案不存在";
+                var savedJsonContent = File.Exists(settingsPath) ? File.ReadAllText(settingsPath) : "檔案不存在";
+                
+                // 載入已儲存的設定
+                AppSettings.ReloadSettings();
+                var savedSettings = AppSettings.Instance;
                 
                 // 顯示當前設定狀態
-                var message = $"原始 JSON 內容:\n{jsonContent}\n\n" +
+                var message = $"當前界面選擇的設定:\n{currentJson}\n\n" +
+                             $"已儲存的設定檔案內容:\n{savedJsonContent}\n\n" +
                              $"載入後的設定狀態:\n" +
-                             $"後端服務: {settings.BackendService}\n" +
-                             $"API URL: {settings.ApiUrl}\n" +
-                             $"Project ID: {settings.ProjectId}\n\n" +
+                             $"後端服務: {savedSettings.BackendService}\n" +
+                             $"API URL: {savedSettings.ApiUrl}\n" +
+                             $"Project ID: {savedSettings.ProjectId}\n\n" +
                              $"RadioButton 狀態:\n" +
                              $"Appwrite: {AppwriteOption.IsChecked}\n" +
                              $"Supabase: {SupabaseOption.IsChecked}\n" +
                              $"NHost: {NHostOption.IsChecked}\n" +
                              $"Contentful: {ContentfulOption.IsChecked}\n" +
                              $"Back4App: {Back4AppOption.IsChecked}\n" +
-                             $"MySQL: {MySQLOption.IsChecked}";
+                             $"MySQL: {MySQLOption.IsChecked}\n" +
+                             $"Strapi: {StrapiOption.IsChecked}\n" +
+                             $"Sanity: {SanityOption.IsChecked}";
                 
                 MessageBox.Show(message, "設定測試", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -313,6 +393,8 @@ namespace wpfkiro20260101
                     ContentfulOption.IsChecked = false;
                     Back4AppOption.IsChecked = false;
                     MySQLOption.IsChecked = false;
+                    StrapiOption.IsChecked = false;
+                    SanityOption.IsChecked = false;
                 }
                 else if (radioButton == SupabaseOption)
                 {
@@ -321,6 +403,8 @@ namespace wpfkiro20260101
                     ContentfulOption.IsChecked = false;
                     Back4AppOption.IsChecked = false;
                     MySQLOption.IsChecked = false;
+                    StrapiOption.IsChecked = false;
+                    SanityOption.IsChecked = false;
                 }
                 else if (radioButton == NHostOption)
                 {
@@ -329,6 +413,8 @@ namespace wpfkiro20260101
                     ContentfulOption.IsChecked = false;
                     Back4AppOption.IsChecked = false;
                     MySQLOption.IsChecked = false;
+                    StrapiOption.IsChecked = false;
+                    SanityOption.IsChecked = false;
                 }
                 else if (radioButton == ContentfulOption)
                 {
@@ -337,6 +423,8 @@ namespace wpfkiro20260101
                     NHostOption.IsChecked = false;
                     Back4AppOption.IsChecked = false;
                     MySQLOption.IsChecked = false;
+                    StrapiOption.IsChecked = false;
+                    SanityOption.IsChecked = false;
                 }
                 else if (radioButton == Back4AppOption)
                 {
@@ -345,6 +433,8 @@ namespace wpfkiro20260101
                     NHostOption.IsChecked = false;
                     ContentfulOption.IsChecked = false;
                     MySQLOption.IsChecked = false;
+                    StrapiOption.IsChecked = false;
+                    SanityOption.IsChecked = false;
                 }
                 else if (radioButton == MySQLOption)
                 {
@@ -353,6 +443,28 @@ namespace wpfkiro20260101
                     NHostOption.IsChecked = false;
                     ContentfulOption.IsChecked = false;
                     Back4AppOption.IsChecked = false;
+                    StrapiOption.IsChecked = false;
+                    SanityOption.IsChecked = false;
+                }
+                else if (radioButton == StrapiOption)
+                {
+                    AppwriteOption.IsChecked = false;
+                    SupabaseOption.IsChecked = false;
+                    NHostOption.IsChecked = false;
+                    ContentfulOption.IsChecked = false;
+                    Back4AppOption.IsChecked = false;
+                    MySQLOption.IsChecked = false;
+                    SanityOption.IsChecked = false;
+                }
+                else if (radioButton == SanityOption)
+                {
+                    AppwriteOption.IsChecked = false;
+                    SupabaseOption.IsChecked = false;
+                    NHostOption.IsChecked = false;
+                    ContentfulOption.IsChecked = false;
+                    Back4AppOption.IsChecked = false;
+                    MySQLOption.IsChecked = false;
+                    StrapiOption.IsChecked = false;
                 }
 
                 // 根據選擇的服務更新預設值
@@ -370,12 +482,38 @@ namespace wpfkiro20260101
                     selectedService = BackendServiceType.Back4App;
                 else if (radioButton == MySQLOption)
                     selectedService = BackendServiceType.MySQL;
+                else if (radioButton == StrapiOption)
+                    selectedService = BackendServiceType.Strapi;
+                else if (radioButton == SanityOption)
+                    selectedService = BackendServiceType.Sanity;
+
+                // 特別處理 Supabase：強制更新為正確的值
+                if (selectedService == BackendServiceType.Supabase)
+                {
+                    System.Diagnostics.Debug.WriteLine("選擇 Supabase，強制更新欄位值");
+                    ApiUrlTextBox.Text = AppSettings.Defaults.Supabase.ApiUrl;
+                    ProjectIdTextBox.Text = AppSettings.Defaults.Supabase.ProjectId;
+                    ApiKeyPasswordBox.Password = AppSettings.Defaults.Supabase.ApiKey;
+                    DatabaseIdTextBox.Text = "";
+                    BucketIdTextBox.Text = "";
+                }
 
                 // 即時保存後端服務選擇
                 try
                 {
                     var settings = AppSettings.Instance;
                     settings.BackendService = selectedService;
+                    
+                    // 如果是 Supabase，也更新相關設定
+                    if (selectedService == BackendServiceType.Supabase)
+                    {
+                        settings.ApiUrl = AppSettings.Defaults.Supabase.ApiUrl;
+                        settings.ProjectId = AppSettings.Defaults.Supabase.ProjectId;
+                        settings.ApiKey = AppSettings.Defaults.Supabase.ApiKey;
+                        settings.DatabaseId = "";
+                        settings.BucketId = "";
+                    }
+                    
                     settings.Save();
                     
                     System.Diagnostics.Debug.WriteLine($"即時保存後端服務: {selectedService}");
@@ -441,6 +579,24 @@ namespace wpfkiro20260101
                     BucketIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     break;
+                case BackendServiceType.Strapi:
+                    ApiUrlLabel.Text = "API URL:";
+                    ProjectIdLabel.Text = "Project ID:";
+                    // 隱藏 Appwrite 專用欄位
+                    DatabaseIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    DatabaseIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    BucketIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    BucketIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    break;
+                case BackendServiceType.Sanity:
+                    ApiUrlLabel.Text = "API URL:";
+                    ProjectIdLabel.Text = "Project ID:";
+                    // 隱藏 Appwrite 專用欄位
+                    DatabaseIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    DatabaseIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    BucketIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    BucketIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    break;
                 default:
                     ApiUrlLabel.Text = "API URL:";
                     ProjectIdLabel.Text = "Project ID:";
@@ -482,14 +638,23 @@ namespace wpfkiro20260101
 
                 case BackendServiceType.Supabase:
                     if (string.IsNullOrWhiteSpace(ApiUrlTextBox.Text) || 
-                        IsDefaultUrl(ApiUrlTextBox.Text))
+                        IsDefaultUrl(ApiUrlTextBox.Text) ||
+                        ApiUrlTextBox.Text.Contains("lobezwpworbfktlkxuyoKiro") ||
+                        !ApiUrlTextBox.Text.Contains("lobezwpworbfktlkxuyo.supabase.co"))
                     {
                         ApiUrlTextBox.Text = AppSettings.Defaults.Supabase.ApiUrl;
                     }
-                    // Supabase 不需要 Project ID，清空該欄位
-                    if (IsDefaultProjectId(ProjectIdTextBox.Text))
+                    if (string.IsNullOrWhiteSpace(ProjectIdTextBox.Text) ||
+                        IsDefaultProjectId(ProjectIdTextBox.Text) ||
+                        ProjectIdTextBox.Text == "lobezwpworbfktlkxuyoKiro" ||
+                        ProjectIdTextBox.Text != "lobezwpworbfktlkxuyo")
                     {
-                        ProjectIdTextBox.Text = "";
+                        ProjectIdTextBox.Text = AppSettings.Defaults.Supabase.ProjectId;
+                    }
+                    if (string.IsNullOrWhiteSpace(ApiKeyPasswordBox.Password) ||
+                        !ApiKeyPasswordBox.Password.StartsWith("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"))
+                    {
+                        ApiKeyPasswordBox.Password = AppSettings.Defaults.Supabase.ApiKey;
                     }
                     break;
 
@@ -544,6 +709,40 @@ namespace wpfkiro20260101
                         ProjectIdTextBox.Text = AppSettings.Defaults.MySQL.ProjectId;
                     }
                     break;
+
+                case BackendServiceType.Strapi:
+                    if (string.IsNullOrWhiteSpace(ApiUrlTextBox.Text) || 
+                        IsDefaultUrl(ApiUrlTextBox.Text))
+                    {
+                        ApiUrlTextBox.Text = AppSettings.Defaults.Strapi.ApiUrl;
+                    }
+                    if (string.IsNullOrWhiteSpace(ProjectIdTextBox.Text) ||
+                        IsDefaultProjectId(ProjectIdTextBox.Text))
+                    {
+                        ProjectIdTextBox.Text = AppSettings.Defaults.Strapi.ProjectId;
+                    }
+                    if (string.IsNullOrWhiteSpace(ApiKeyPasswordBox.Password))
+                    {
+                        ApiKeyPasswordBox.Password = AppSettings.Defaults.Strapi.ApiKey;
+                    }
+                    break;
+
+                case BackendServiceType.Sanity:
+                    if (string.IsNullOrWhiteSpace(ApiUrlTextBox.Text) || 
+                        IsDefaultUrl(ApiUrlTextBox.Text))
+                    {
+                        ApiUrlTextBox.Text = AppSettings.Defaults.Sanity.ApiUrl;
+                    }
+                    if (string.IsNullOrWhiteSpace(ProjectIdTextBox.Text) ||
+                        IsDefaultProjectId(ProjectIdTextBox.Text))
+                    {
+                        ProjectIdTextBox.Text = AppSettings.Defaults.Sanity.ProjectId;
+                    }
+                    if (string.IsNullOrWhiteSpace(ApiKeyPasswordBox.Password))
+                    {
+                        ApiKeyPasswordBox.Password = AppSettings.Defaults.Sanity.ApiKey;
+                    }
+                    break;
             }
         }
 
@@ -554,16 +753,21 @@ namespace wpfkiro20260101
                    url == AppSettings.Defaults.NHost.ApiUrl ||
                    url == AppSettings.Defaults.Contentful.ApiUrl ||
                    url == AppSettings.Defaults.Back4App.ApiUrl ||
-                   url == AppSettings.Defaults.MySQL.ApiUrl;
+                   url == AppSettings.Defaults.MySQL.ApiUrl ||
+                   url == AppSettings.Defaults.Strapi.ApiUrl ||
+                   url == AppSettings.Defaults.Sanity.ApiUrl;
         }
 
         private bool IsDefaultProjectId(string projectId)
         {
             return projectId == AppSettings.Defaults.Appwrite.ProjectId ||
+                   projectId == AppSettings.Defaults.Supabase.ProjectId ||
                    projectId == AppSettings.Defaults.NHost.ProjectId ||
                    projectId == AppSettings.Defaults.Contentful.ProjectId ||
                    projectId == AppSettings.Defaults.Back4App.ProjectId ||
-                   projectId == AppSettings.Defaults.MySQL.ProjectId;
+                   projectId == AppSettings.Defaults.MySQL.ProjectId ||
+                   projectId == AppSettings.Defaults.Strapi.ProjectId ||
+                   projectId == AppSettings.Defaults.Sanity.ProjectId;
         }
 
         private async void DownloadFoodCsv_Click(object sender, RoutedEventArgs e)

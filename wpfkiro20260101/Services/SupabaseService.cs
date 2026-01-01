@@ -35,11 +35,44 @@ namespace wpfkiro20260101.Services
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
 
+                // 先測試基本連接
                 var response = await _httpClient.GetAsync($"{_settings.ApiUrl}/rest/v1/");
-                return response.IsSuccessStatusCode;
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Supabase 基本連接失敗: {response.StatusCode}");
+                    return false;
+                }
+
+                // 嘗試測試不同的資料表名稱
+                var tableNames = new[] { "food", "foods", "Food", "Foods" };
+                
+                foreach (var tableName in tableNames)
+                {
+                    try
+                    {
+                        var testResponse = await _httpClient.GetAsync($"{_settings.ApiUrl}/rest/v1/{tableName}");
+                        if (testResponse.IsSuccessStatusCode)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"找到可用的資料表: {tableName}");
+                            return true;
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"資料表 {tableName} 不可用: {testResponse.StatusCode}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"測試資料表 {tableName} 時發生錯誤: {ex.Message}");
+                    }
+                }
+
+                return false;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Supabase 連接測試異常: {ex.Message}");
                 return false;
             }
         }
@@ -71,12 +104,21 @@ namespace wpfkiro20260101.Services
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+                _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
 
-                var response = await _httpClient.GetAsync($"{_settings.ApiUrl}/rest/v1/foods");
+                var apiUrl = $"{_settings.ApiUrl}/rest/v1/food";
+                System.Diagnostics.Debug.WriteLine($"嘗試連接 Supabase Food API: {apiUrl}");
+                
+                var response = await _httpClient.GetAsync(apiUrl);
+                
+                System.Diagnostics.Debug.WriteLine($"Food API 回應狀態: {response.StatusCode}");
                 
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Food API 成功，回應內容: {jsonContent}");
+                    
                     var data = JsonSerializer.Deserialize<JsonElement[]>(jsonContent);
                     
                     var foods = new List<object>();
@@ -85,16 +127,17 @@ namespace wpfkiro20260101.Services
                         foods.Add(new
                         {
                             id = item.TryGetProperty("id", out var id) ? id.GetString() : "",
-                            foodName = item.TryGetProperty("food_name", out var foodName) ? foodName.GetString() : "",
+                            foodName = item.TryGetProperty("name", out var name) ? name.GetString() : "",
                             price = item.TryGetProperty("price", out var price) ? (price.ValueKind == JsonValueKind.Number ? price.GetInt32() : 0) : 0,
                             photo = item.TryGetProperty("photo", out var photo) ? photo.GetString() : "",
-                            photoHash = item.TryGetProperty("photo_hash", out var photoHash) ? photoHash.GetString() : "",
+                            photoHash = "", // 不存在於實際資料表中
                             shop = item.TryGetProperty("shop", out var shop) ? shop.GetString() : "",
-                            toDate = item.TryGetProperty("to_date", out var toDate) ? toDate.GetString() : "",
-                            description = item.TryGetProperty("description", out var description) ? description.GetString() : "",
-                            category = item.TryGetProperty("category", out var category) ? category.GetString() : "",
-                            storageLocation = item.TryGetProperty("storage_location", out var storageLocation) ? storageLocation.GetString() : "",
-                            note = item.TryGetProperty("note", out var note) ? note.GetString() : "",
+                            toDate = item.TryGetProperty("todate", out var toDate) ? toDate.GetString() : "",
+                            description = "", // 不存在於實際資料表中
+                            category = "", // 不存在於實際資料表中
+                            storageLocation = "", // 不存在於實際資料表中
+                            note = "", // 不存在於實際資料表中
+                            account = item.TryGetProperty("account", out var account) ? account.GetString() : "",
                             createdAt = item.TryGetProperty("created_at", out var createdAt) ? createdAt.GetString() : "",
                             updatedAt = item.TryGetProperty("updated_at", out var updatedAt) ? updatedAt.GetString() : ""
                         });
@@ -104,11 +147,14 @@ namespace wpfkiro20260101.Services
                 }
                 else
                 {
-                    return BackendServiceResult<object[]>.CreateError($"Supabase API 錯誤：{response.StatusCode}");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Food API 錯誤: {response.StatusCode} - {errorContent}");
+                    return BackendServiceResult<object[]>.CreateError($"Supabase 拒絕要求：{response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Supabase Food API 連接異常: {ex.Message}");
                 return BackendServiceResult<object[]>.CreateError($"載入 Supabase 食品資料失敗：{ex.Message}");
             }
         }
@@ -131,25 +177,18 @@ namespace wpfkiro20260101.Services
                 
                 if (foodData is Models.Food food)
                 {
-                    data["food_name"] = food.FoodName;
+                    data["name"] = food.FoodName;
                     data["price"] = food.Price;
-                    data["quantity"] = food.Quantity;
                     data["photo"] = food.Photo;
-                    data["photo_hash"] = food.PhotoHash;
                     data["shop"] = food.Shop;
-                    data["to_date"] = food.ToDate;
-                    data["description"] = food.Description;
-                    data["category"] = food.Category;
-                    data["storage_location"] = food.StorageLocation;
-                    data["note"] = food.Note;
-                    data["created_at"] = food.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-                    data["updated_at"] = food.UpdatedAt.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    data["todate"] = food.ToDate;
+                    data["account"] = ""; // 新欄位，暫時留空
                 }
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/rest/v1/foods", content);
+                var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/rest/v1/food", content);
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -160,6 +199,8 @@ namespace wpfkiro20260101.Services
                 }
                 else
                 {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Create Food API 錯誤: {response.StatusCode} - {errorContent}");
                     return BackendServiceResult<object>.CreateError($"Supabase 創建失敗：{response.StatusCode}");
                 }
             }
@@ -187,24 +228,18 @@ namespace wpfkiro20260101.Services
                 
                 if (foodData is Models.Food food)
                 {
-                    data["food_name"] = food.FoodName;
+                    data["name"] = food.FoodName;
                     data["price"] = food.Price;
-                    data["quantity"] = food.Quantity;
                     data["photo"] = food.Photo;
-                    data["photo_hash"] = food.PhotoHash;
                     data["shop"] = food.Shop;
-                    data["to_date"] = food.ToDate;
-                    data["description"] = food.Description;
-                    data["category"] = food.Category;
-                    data["storage_location"] = food.StorageLocation;
-                    data["note"] = food.Note;
-                    data["updated_at"] = food.UpdatedAt.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    data["todate"] = food.ToDate;
+                    data["account"] = ""; // 新欄位，暫時留空
                 }
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PatchAsync($"{_settings.ApiUrl}/rest/v1/foods?id=eq.{id}", content);
+                var response = await _httpClient.PatchAsync($"{_settings.ApiUrl}/rest/v1/food?id=eq.{id}", content);
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -216,6 +251,8 @@ namespace wpfkiro20260101.Services
                 }
                 else
                 {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Update Food API 錯誤: {response.StatusCode} - {errorContent}");
                     return BackendServiceResult<object>.CreateError($"Supabase 更新失敗：{response.StatusCode}");
                 }
             }
@@ -239,7 +276,7 @@ namespace wpfkiro20260101.Services
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
 
-                var response = await _httpClient.DeleteAsync($"{_settings.ApiUrl}/rest/v1/foods?id=eq.{id}");
+                var response = await _httpClient.DeleteAsync($"{_settings.ApiUrl}/rest/v1/food?id=eq.{id}");
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -247,6 +284,8 @@ namespace wpfkiro20260101.Services
                 }
                 else
                 {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Delete Food API 錯誤: {response.StatusCode} - {errorContent}");
                     return BackendServiceResult<bool>.CreateError($"Supabase 刪除失敗：{response.StatusCode}");
                 }
             }
@@ -270,12 +309,21 @@ namespace wpfkiro20260101.Services
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+                _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
 
-                var response = await _httpClient.GetAsync($"{_settings.ApiUrl}/rest/v1/subscriptions");
+                var apiUrl = $"{_settings.ApiUrl}/rest/v1/subscription";
+                System.Diagnostics.Debug.WriteLine($"嘗試連接 Supabase Subscription API: {apiUrl}");
+                
+                var response = await _httpClient.GetAsync(apiUrl);
+                
+                System.Diagnostics.Debug.WriteLine($"Subscription API 回應狀態: {response.StatusCode}");
                 
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Subscription API 成功，回應內容: {jsonContent}");
+                    
                     var data = JsonSerializer.Deserialize<JsonElement[]>(jsonContent);
                     
                     var subscriptions = new List<object>();
@@ -284,15 +332,15 @@ namespace wpfkiro20260101.Services
                         subscriptions.Add(new
                         {
                             id = item.TryGetProperty("id", out var id) ? id.GetString() : "",
-                            subscriptionName = item.TryGetProperty("subscription_name", out var subscriptionName) ? subscriptionName.GetString() : "",
-                            nextDate = item.TryGetProperty("next_date", out var nextDate) ? nextDate.GetString() : "",
+                            subscriptionName = item.TryGetProperty("name", out var name) ? name.GetString() : "",
+                            nextDate = item.TryGetProperty("nextdate", out var nextDate) ? nextDate.GetString() : "",
                             price = item.TryGetProperty("price", out var price) ? price.GetInt32() : 0,
                             site = item.TryGetProperty("site", out var site) ? site.GetString() : "",
                             account = item.TryGetProperty("account", out var account) ? account.GetString() : "",
                             note = item.TryGetProperty("note", out var note) ? note.GetString() : "",
-                            stringToDate = item.TryGetProperty("string_to_date", out var stringToDate) ? stringToDate.GetString() : "",
-                            dateTime = item.TryGetProperty("date_time", out var dateTime) ? dateTime.GetString() : "",
-                            foodId = item.TryGetProperty("food_id", out var foodId) ? foodId.GetString() : null,
+                            stringToDate = "", // 不存在於實際資料表中
+                            dateTime = "", // 不存在於實際資料表中
+                            foodId = (string?)null, // 不存在於實際資料表中
                             createdAt = item.TryGetProperty("created_at", out var createdAt) ? createdAt.GetString() : "",
                             updatedAt = item.TryGetProperty("updated_at", out var updatedAt) ? updatedAt.GetString() : ""
                         });
@@ -302,11 +350,14 @@ namespace wpfkiro20260101.Services
                 }
                 else
                 {
-                    return BackendServiceResult<object[]>.CreateError($"Supabase API 錯誤：{response.StatusCode}");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Subscription API 錯誤: {response.StatusCode} - {errorContent}");
+                    return BackendServiceResult<object[]>.CreateError($"Supabase 拒絕要求：{response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Supabase Subscription API 連接異常: {ex.Message}");
                 return BackendServiceResult<object[]>.CreateError($"載入 Supabase 訂閱資料失敗：{ex.Message}");
             }
         }
@@ -329,24 +380,18 @@ namespace wpfkiro20260101.Services
                 
                 if (subscriptionData is Models.Subscription subscription)
                 {
-                    data["subscription_name"] = subscription.SubscriptionName;
-                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-dd");
+                    data["name"] = subscription.SubscriptionName;
+                    data["nextdate"] = subscription.NextDate.ToString("yyyy-MM-dd");
                     data["price"] = subscription.Price;
                     data["site"] = subscription.Site;
                     data["account"] = subscription.Account;
                     data["note"] = subscription.Note;
-                    data["string_to_date"] = subscription.StringToDate;
-                    data["date_time"] = subscription.DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-                    if (!string.IsNullOrEmpty(subscription.FoodId))
-                    {
-                        data["food_id"] = subscription.FoodId;
-                    }
                 }
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/rest/v1/subscriptions", content);
+                var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/rest/v1/subscription", content);
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -357,6 +402,8 @@ namespace wpfkiro20260101.Services
                 }
                 else
                 {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Create Subscription API 錯誤: {response.StatusCode} - {errorContent}");
                     return BackendServiceResult<object>.CreateError($"Supabase 創建失敗：{response.StatusCode}");
                 }
             }
@@ -384,24 +431,18 @@ namespace wpfkiro20260101.Services
                 
                 if (subscriptionData is Models.Subscription subscription)
                 {
-                    data["subscription_name"] = subscription.SubscriptionName;
-                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-dd");
+                    data["name"] = subscription.SubscriptionName;
+                    data["nextdate"] = subscription.NextDate.ToString("yyyy-MM-dd");
                     data["price"] = subscription.Price;
                     data["site"] = subscription.Site;
                     data["account"] = subscription.Account;
                     data["note"] = subscription.Note;
-                    data["string_to_date"] = subscription.StringToDate;
-                    data["date_time"] = subscription.DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-                    if (!string.IsNullOrEmpty(subscription.FoodId))
-                    {
-                        data["food_id"] = subscription.FoodId;
-                    }
                 }
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PatchAsync($"{_settings.ApiUrl}/rest/v1/subscriptions?id=eq.{id}", content);
+                var response = await _httpClient.PatchAsync($"{_settings.ApiUrl}/rest/v1/subscription?id=eq.{id}", content);
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -413,6 +454,8 @@ namespace wpfkiro20260101.Services
                 }
                 else
                 {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Update Subscription API 錯誤: {response.StatusCode} - {errorContent}");
                     return BackendServiceResult<object>.CreateError($"Supabase 更新失敗：{response.StatusCode}");
                 }
             }
@@ -436,7 +479,7 @@ namespace wpfkiro20260101.Services
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
 
-                var response = await _httpClient.DeleteAsync($"{_settings.ApiUrl}/rest/v1/subscriptions?id=eq.{id}");
+                var response = await _httpClient.DeleteAsync($"{_settings.ApiUrl}/rest/v1/subscription?id=eq.{id}");
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -444,6 +487,8 @@ namespace wpfkiro20260101.Services
                 }
                 else
                 {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Delete Subscription API 錯誤: {response.StatusCode} - {errorContent}");
                     return BackendServiceResult<bool>.CreateError($"Supabase 刪除失敗：{response.StatusCode}");
                 }
             }
