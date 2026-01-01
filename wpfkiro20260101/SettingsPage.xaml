@@ -1,0 +1,306 @@
+<Page x:Class="wpfkiro20260101.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:wpfkiro20260101"
+      mc:Ignorable="d" 
+      d:DesignHeight="600" d:DesignWidth="800"
+      Title="系統設定">
+
+    <Page.Resources>
+        <!-- 卡片樣式 -->
+        <Style x:Key="SettingsCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="25"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" Opacity="0.1" ShadowDepth="2" BlurRadius="8"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 標題樣式 -->
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#374151"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+
+        <!-- 後端選項按鈕樣式 -->
+        <Style x:Key="BackendOptionStyle" TargetType="RadioButton">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="BackendBorder" 
+                                Background="#F9FAFB" 
+                                BorderBrush="#E5E7EB" 
+                                BorderThickness="2" 
+                                CornerRadius="8" 
+                                Padding="20"
+                                Margin="0,0,0,10"
+                                Cursor="Hand">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- 圖標 -->
+                                <Border Grid.Column="0" 
+                                        Background="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" 
+                                        CornerRadius="6" 
+                                        Width="40" 
+                                        Height="40" 
+                                        Margin="0,0,15,0">
+                                    <TextBlock Text="{Binding Content.Children[0].Text, RelativeSource={RelativeSource TemplatedParent}}" 
+                                               FontSize="18" 
+                                               Foreground="White" 
+                                               HorizontalAlignment="Center" 
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                                
+                                <!-- 內容 -->
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="{Binding Content.Children[1].Text, RelativeSource={RelativeSource TemplatedParent}}" 
+                                               FontSize="16" 
+                                               FontWeight="Bold" 
+                                               Foreground="#111827"/>
+                                    <TextBlock Text="{Binding Content.Children[2].Text, RelativeSource={RelativeSource TemplatedParent}}" 
+                                               FontSize="14" 
+                                               Foreground="#6B7280" 
+                                               Margin="0,5,0,0"/>
+                                </StackPanel>
+                                
+                                <!-- 選中指示器 -->
+                                <Ellipse Grid.Column="2" 
+                                         x:Name="SelectionIndicator"
+                                         Width="20" 
+                                         Height="20" 
+                                         Fill="#E5E7EB" 
+                                         Stroke="#D1D5DB" 
+                                         StrokeThickness="2"/>
+                            </Grid>
+                        </Border>
+                        
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BackendBorder" Property="BorderBrush" Value="#6366F1"/>
+                                <Setter TargetName="BackendBorder" Property="Background" Value="#F0F9FF"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="BackendBorder" Property="BorderBrush" Value="#6366F1"/>
+                                <Setter TargetName="BackendBorder" Property="Background" Value="#EEF2FF"/>
+                                <Setter TargetName="SelectionIndicator" Property="Fill" Value="#6366F1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 保存按鈕樣式 -->
+        <Style x:Key="SaveButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#6366F1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"
+                                            Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#4F46E5"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#4338CA"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="30">
+            <!-- 頁面標題 -->
+            <TextBlock Text="系統設定" 
+                       FontSize="28" 
+                       FontWeight="Bold" 
+                       Foreground="#111827" 
+                       Margin="0,0,0,30"/>
+
+            <!-- 後端服務設定 -->
+            <Border Style="{StaticResource SettingsCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="後端服務設定" Style="{StaticResource SectionTitleStyle}"/>
+                    <TextBlock Text="選擇您要使用的後端服務提供商" 
+                               FontSize="14" 
+                               Foreground="#6B7280" 
+                               Margin="0,0,0,20"/>
+
+                    <!-- Appwrite 選項 -->
+                    <RadioButton x:Name="AppwriteOption" 
+                                 GroupName="BackendService" 
+                                 Style="{StaticResource BackendOptionStyle}"
+                                 Tag="#FF6B35"
+                                 Checked="BackendOption_Checked">
+                        <StackPanel>
+                            <TextBlock Text="🔥"/>
+                            <TextBlock Text="Appwrite"/>
+                            <TextBlock Text="開源的後端即服務平台，提供完整的用戶認證、資料庫和檔案儲存功能"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <!-- Supabase 選項 -->
+                    <RadioButton x:Name="SupabaseOption" 
+                                 GroupName="BackendService" 
+                                 Style="{StaticResource BackendOptionStyle}"
+                                 Tag="#3ECF8E"
+                                 Checked="BackendOption_Checked">
+                        <StackPanel>
+                            <TextBlock Text="⚡"/>
+                            <TextBlock Text="Supabase"/>
+                            <TextBlock Text="開源的 Firebase 替代方案，基於 PostgreSQL 的即時資料庫服務"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <!-- NHost 選項 -->
+                    <RadioButton x:Name="NHostOption" 
+                                 GroupName="BackendService" 
+                                 Style="{StaticResource BackendOptionStyle}"
+                                 Tag="#6366F1"
+                                 Checked="BackendOption_Checked">
+                        <StackPanel>
+                            <TextBlock Text="🚀"/>
+                            <TextBlock Text="NHost"/>
+                            <TextBlock Text="現代化的後端即服務平台，支援 GraphQL 和即時功能"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <!-- Contentful 選項 -->
+                    <RadioButton x:Name="ContentfulOption" 
+                                 GroupName="BackendService" 
+                                 Style="{StaticResource BackendOptionStyle}"
+                                 Tag="#2478CC"
+                                 Checked="BackendOption_Checked">
+                        <StackPanel>
+                            <TextBlock Text="📝"/>
+                            <TextBlock Text="Contentful"/>
+                            <TextBlock Text="強大的內容管理系統，提供 API 優先的內容交付平台"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <!-- MySQL 選項 -->
+                    <RadioButton x:Name="MySQLOption" 
+                                 GroupName="BackendService" 
+                                 Style="{StaticResource BackendOptionStyle}"
+                                 Tag="#00758F"
+                                 Checked="BackendOption_Checked">
+                        <StackPanel>
+                            <TextBlock Text="🗄️"/>
+                            <TextBlock Text="MySQL"/>
+                            <TextBlock Text="世界上最受歡迎的開源關聯式資料庫管理系統"/>
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </Border>
+
+            <!-- 連線設定 -->
+            <Border Style="{StaticResource SettingsCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="連線設定" Style="{StaticResource SectionTitleStyle}"/>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- API URL -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" 
+                                   Text="API URL:" 
+                                   FontWeight="Bold" 
+                                   Margin="0,0,15,10" 
+                                   VerticalAlignment="Center"/>
+                        <TextBox x:Name="ApiUrlTextBox" 
+                                 Grid.Row="0" Grid.Column="1" 
+                                 Padding="10" 
+                                 Margin="0,0,0,10"
+                                 BorderBrush="#D1D5DB"
+                                 BorderThickness="1"
+                                 Background="#F9FAFB"/>
+
+                        <!-- Project ID -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" 
+                                   x:Name="ProjectIdLabel"
+                                   Text="Project ID:" 
+                                   FontWeight="Bold" 
+                                   Margin="0,0,15,10" 
+                                   VerticalAlignment="Center"/>
+                        <TextBox x:Name="ProjectIdTextBox" 
+                                 Grid.Row="1" Grid.Column="1" 
+                                 Padding="10" 
+                                 Margin="0,0,0,10"
+                                 BorderBrush="#D1D5DB"
+                                 BorderThickness="1"
+                                 Background="#F9FAFB"/>
+
+                        <!-- API Key -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" 
+                                   Text="API Key:" 
+                                   FontWeight="Bold" 
+                                   Margin="0,0,15,10" 
+                                   VerticalAlignment="Center"/>
+                        <PasswordBox x:Name="ApiKeyPasswordBox" 
+                                     Grid.Row="2" Grid.Column="1" 
+                                     Padding="10" 
+                                     Margin="0,0,0,10"
+                                     BorderBrush="#D1D5DB"
+                                     BorderThickness="1"
+                                     Background="#F9FAFB"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 操作按鈕 -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="TestConnectionButton" 
+                        Content="測試連線" 
+                        Style="{StaticResource SaveButtonStyle}"
+                        Background="#10B981"
+                        Margin="0,0,10,0"
+                        Click="TestConnection_Click"/>
+                <Button x:Name="SaveSettingsButton" 
+                        Content="儲存設定" 
+                        Style="{StaticResource SaveButtonStyle}"
+                        Click="SaveSettings_Click"/>
+            </StackPanel>
+
+            <!-- 狀態訊息 -->
+            <TextBlock x:Name="StatusMessage" 
+                       Margin="0,20,0,0" 
+                       FontSize="14" 
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

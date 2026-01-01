@@ -118,6 +118,16 @@
                         <TextBlock Text="食品管理"/>
                     </StackPanel>
                 </Button>
+                
+                <!-- 分隔線 -->
+                <Border Height="1" Background="#5B21B6" Margin="10,20,10,20" Opacity="0.3"/>
+                
+                <Button x:Name="SettingsButton" Style="{StaticResource SidebarButtonStyle}" Click="NavigateToSettings">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚙️" FontSize="16" Margin="0,0,10,0"/>
+                        <TextBlock Text="系統設定"/>
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </Border>
         

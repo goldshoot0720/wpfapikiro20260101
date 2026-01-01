@@ -51,5 +51,10 @@ namespace wpfkiro20260101
         {
             MainFrame.Navigate(new FoodPage());
         }
+
+        private void NavigateToSettings(object sender, RoutedEventArgs e)
+        {
+            MainFrame.Navigate(new SettingsPage());
+        }
     }
 }
