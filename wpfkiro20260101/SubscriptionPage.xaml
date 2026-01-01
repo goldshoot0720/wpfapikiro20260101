@@ -96,13 +96,6 @@
                 <!-- 訂閱項目列表 -->
                 <StackPanel x:Name="SubscriptionItemsContainer">
                     <!-- 動態載入的訂閱項目將在這裡顯示 -->
-                    <Border Style="{StaticResource SubscriptionCardStyle}" x:Name="NoDataMessage" Visibility="Collapsed">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
-                            <TextBlock Text="📋" FontSize="48" HorizontalAlignment="Center" Foreground="#9CA3AF" Margin="0,0,0,10"/>
-                            <TextBlock Text="目前沒有訂閱資料" FontSize="16" HorizontalAlignment="Center" Foreground="#6B7280" FontWeight="Bold"/>
-                            <TextBlock Text="點擊上方的「添加訂閱」按鈕來新增訂閱項目" FontSize="12" HorizontalAlignment="Center" Foreground="#9CA3AF" Margin="0,5,0,0"/>
-                        </StackPanel>
-                    </Border>
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>

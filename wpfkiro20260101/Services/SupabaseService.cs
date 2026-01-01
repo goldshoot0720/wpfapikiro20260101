@@ -9,16 +9,16 @@ namespace wpfkiro20260101.Services
 {
     public class SupabaseService : IBackendService
     {
-        private readonly AppSettings _settings;
         private readonly HttpClient _httpClient;
+        private readonly AppSettings _settings;
 
         public string ServiceName => "Supabase";
         public BackendServiceType ServiceType => BackendServiceType.Supabase;
 
         public SupabaseService()
         {
-            _settings = AppSettings.Instance;
             _httpClient = new HttpClient();
+            _settings = AppSettings.Instance;
         }
 
         public async Task<bool> TestConnectionAsync()
@@ -31,7 +31,6 @@ namespace wpfkiro20260101.Services
                     return false;
                 }
 
-                // 測試 Supabase REST API
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
@@ -58,8 +57,8 @@ namespace wpfkiro20260101.Services
             }
         }
 
-        // 食品訂閱相關方法
-        public async Task<BackendServiceResult<object[]>> GetFoodSubscriptionsAsync()
+        // Food CRUD operations
+        public async Task<BackendServiceResult<object[]>> GetFoodsAsync()
         {
             try
             {
@@ -73,31 +72,30 @@ namespace wpfkiro20260101.Services
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
 
-                // 假設 Supabase 中有一個名為 food_subscriptions 的表
-                var response = await _httpClient.GetAsync($"{_settings.ApiUrl}/rest/v1/food_subscriptions");
+                var response = await _httpClient.GetAsync($"{_settings.ApiUrl}/rest/v1/foods");
                 
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonContent = await response.Content.ReadAsStringAsync();
                     var data = JsonSerializer.Deserialize<JsonElement[]>(jsonContent);
                     
-                    var subscriptions = new List<object>();
+                    var foods = new List<object>();
                     foreach (var item in data)
                     {
-                        subscriptions.Add(new
+                        foods.Add(new
                         {
                             id = item.TryGetProperty("id", out var id) ? id.GetString() : "",
                             foodName = item.TryGetProperty("food_name", out var foodName) ? foodName.GetString() : "",
-                            stringToDate = item.TryGetProperty("string_to_date", out var stringToDate) ? stringToDate.GetString() : "",
-                            dateTime = item.TryGetProperty("date_time", out var dateTime) && DateTime.TryParse(dateTime.GetString(), out var dt) ? dt : DateTime.Now,
                             photo = item.TryGetProperty("photo", out var photo) ? photo.GetString() : "",
-                            price = item.TryGetProperty("price", out var price) ? price.GetInt32() : 0,
+                            photoHash = item.TryGetProperty("photo_hash", out var photoHash) ? photoHash.GetString() : "",
                             shop = item.TryGetProperty("shop", out var shop) ? shop.GetString() : "",
-                            photoHash = item.TryGetProperty("photo_hash", out var photoHash) ? photoHash.GetString() : ""
+                            note = item.TryGetProperty("note", out var note) ? note.GetString() : "",
+                            createdAt = item.TryGetProperty("created_at", out var createdAt) ? createdAt.GetString() : "",
+                            updatedAt = item.TryGetProperty("updated_at", out var updatedAt) ? updatedAt.GetString() : ""
                         });
                     }
                     
-                    return BackendServiceResult<object[]>.CreateSuccess(subscriptions.ToArray());
+                    return BackendServiceResult<object[]>.CreateSuccess(foods.ToArray());
                 }
                 else
                 {
@@ -106,11 +104,11 @@ namespace wpfkiro20260101.Services
             }
             catch (Exception ex)
             {
-                return BackendServiceResult<object[]>.CreateError($"載入 Supabase 食品訂閱資料失敗：{ex.Message}");
+                return BackendServiceResult<object[]>.CreateError($"載入 Supabase 食品資料失敗：{ex.Message}");
             }
         }
 
-        public async Task<BackendServiceResult<object>> CreateFoodSubscriptionAsync(object subscriptionData)
+        public async Task<BackendServiceResult<object>> CreateFoodAsync(object foodData)
         {
             try
             {
@@ -126,30 +124,214 @@ namespace wpfkiro20260101.Services
 
                 var data = new Dictionary<string, object>();
                 
-                if (subscriptionData is Models.FoodSubscription foodSub)
+                if (foodData is Models.Food food)
                 {
-                    data["food_name"] = foodSub.FoodName;
-                    data["string_to_date"] = foodSub.StringToDate;
-                    data["date_time"] = foodSub.DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-                    data["photo"] = foodSub.Photo;
-                    data["price"] = foodSub.Price;
-                    data["shop"] = foodSub.Shop;
-                    data["photo_hash"] = foodSub.PhotoHash;
+                    data["food_name"] = food.FoodName;
+                    data["photo"] = food.Photo;
+                    data["photo_hash"] = food.PhotoHash;
+                    data["shop"] = food.Shop;
+                    data["note"] = food.Note;
                 }
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/rest/v1/food_subscriptions", content);
+                var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/rest/v1/foods", content);
                 
                 if (response.IsSuccessStatusCode)
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
                     return BackendServiceResult<object>.CreateSuccess(new
                     {
-                        id = result.TryGetProperty("id", out var id) ? id.GetString() : "",
+                        data = foodData
+                    });
+                }
+                else
+                {
+                    return BackendServiceResult<object>.CreateError($"Supabase 創建失敗：{response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object>.CreateError($"創建 Supabase 食品失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<object>> UpdateFoodAsync(string id, object foodData)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    return BackendServiceResult<object>.CreateError("Supabase 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+
+                var data = new Dictionary<string, object>();
+                
+                if (foodData is Models.Food food)
+                {
+                    data["food_name"] = food.FoodName;
+                    data["photo"] = food.Photo;
+                    data["photo_hash"] = food.PhotoHash;
+                    data["shop"] = food.Shop;
+                    data["note"] = food.Note;
+                }
+
+                var json = JsonSerializer.Serialize(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PatchAsync($"{_settings.ApiUrl}/rest/v1/foods?id=eq.{id}", content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return BackendServiceResult<object>.CreateSuccess(new
+                    {
+                        id = id,
+                        data = foodData
+                    });
+                }
+                else
+                {
+                    return BackendServiceResult<object>.CreateError($"Supabase 更新失敗：{response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object>.CreateError($"更新 Supabase 食品失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<bool>> DeleteFoodAsync(string id)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    return BackendServiceResult<bool>.CreateError("Supabase 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+
+                var response = await _httpClient.DeleteAsync($"{_settings.ApiUrl}/rest/v1/foods?id=eq.{id}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return BackendServiceResult<bool>.CreateSuccess(true);
+                }
+                else
+                {
+                    return BackendServiceResult<bool>.CreateError($"Supabase 刪除失敗：{response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<bool>.CreateError($"刪除 Supabase 食品失敗：{ex.Message}");
+            }
+        }
+
+        // Subscription CRUD operations
+        public async Task<BackendServiceResult<object[]>> GetSubscriptionsAsync()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    return BackendServiceResult<object[]>.CreateError("Supabase 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+
+                var response = await _httpClient.GetAsync($"{_settings.ApiUrl}/rest/v1/subscriptions");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonContent = await response.Content.ReadAsStringAsync();
+                    var data = JsonSerializer.Deserialize<JsonElement[]>(jsonContent);
+                    
+                    var subscriptions = new List<object>();
+                    foreach (var item in data)
+                    {
+                        subscriptions.Add(new
+                        {
+                            id = item.TryGetProperty("id", out var id) ? id.GetString() : "",
+                            subscriptionName = item.TryGetProperty("subscription_name", out var subscriptionName) ? subscriptionName.GetString() : "",
+                            nextDate = item.TryGetProperty("next_date", out var nextDate) ? nextDate.GetString() : "",
+                            price = item.TryGetProperty("price", out var price) ? price.GetInt32() : 0,
+                            site = item.TryGetProperty("site", out var site) ? site.GetString() : "",
+                            account = item.TryGetProperty("account", out var account) ? account.GetString() : "",
+                            note = item.TryGetProperty("note", out var note) ? note.GetString() : "",
+                            stringToDate = item.TryGetProperty("string_to_date", out var stringToDate) ? stringToDate.GetString() : "",
+                            dateTime = item.TryGetProperty("date_time", out var dateTime) ? dateTime.GetString() : "",
+                            foodId = item.TryGetProperty("food_id", out var foodId) ? foodId.GetString() : null,
+                            createdAt = item.TryGetProperty("created_at", out var createdAt) ? createdAt.GetString() : "",
+                            updatedAt = item.TryGetProperty("updated_at", out var updatedAt) ? updatedAt.GetString() : ""
+                        });
+                    }
+                    
+                    return BackendServiceResult<object[]>.CreateSuccess(subscriptions.ToArray());
+                }
+                else
+                {
+                    return BackendServiceResult<object[]>.CreateError($"Supabase API 錯誤：{response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object[]>.CreateError($"載入 Supabase 訂閱資料失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<object>> CreateSubscriptionAsync(object subscriptionData)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    return BackendServiceResult<object>.CreateError("Supabase 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+
+                var data = new Dictionary<string, object>();
+                
+                if (subscriptionData is Models.Subscription subscription)
+                {
+                    data["subscription_name"] = subscription.SubscriptionName;
+                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    data["price"] = subscription.Price;
+                    data["site"] = subscription.Site;
+                    data["account"] = subscription.Account;
+                    data["note"] = subscription.Note;
+                    data["string_to_date"] = subscription.StringToDate;
+                    data["date_time"] = subscription.DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    if (!string.IsNullOrEmpty(subscription.FoodId))
+                    {
+                        data["food_id"] = subscription.FoodId;
+                    }
+                }
+
+                var json = JsonSerializer.Serialize(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/rest/v1/subscriptions", content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return BackendServiceResult<object>.CreateSuccess(new
+                    {
                         data = subscriptionData
                     });
                 }
@@ -160,22 +342,100 @@ namespace wpfkiro20260101.Services
             }
             catch (Exception ex)
             {
-                return BackendServiceResult<object>.CreateError($"創建 Supabase 食品訂閱失敗：{ex.Message}");
+                return BackendServiceResult<object>.CreateError($"創建 Supabase 訂閱失敗：{ex.Message}");
             }
         }
 
-        // Supabase 特定的方法
-        public async Task<BackendServiceResult<string>> SignUpAsync(string email, string password)
+        public async Task<BackendServiceResult<object>> UpdateSubscriptionAsync(string id, object subscriptionData)
         {
             try
             {
-                await Task.Delay(1000);
-                return BackendServiceResult<string>.CreateSuccess("user-id-456");
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    return BackendServiceResult<object>.CreateError("Supabase 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+
+                var data = new Dictionary<string, object>();
+                
+                if (subscriptionData is Models.Subscription subscription)
+                {
+                    data["subscription_name"] = subscription.SubscriptionName;
+                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    data["price"] = subscription.Price;
+                    data["site"] = subscription.Site;
+                    data["account"] = subscription.Account;
+                    data["note"] = subscription.Note;
+                    data["string_to_date"] = subscription.StringToDate;
+                    data["date_time"] = subscription.DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    if (!string.IsNullOrEmpty(subscription.FoodId))
+                    {
+                        data["food_id"] = subscription.FoodId;
+                    }
+                }
+
+                var json = JsonSerializer.Serialize(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PatchAsync($"{_settings.ApiUrl}/rest/v1/subscriptions?id=eq.{id}", content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return BackendServiceResult<object>.CreateSuccess(new
+                    {
+                        id = id,
+                        data = subscriptionData
+                    });
+                }
+                else
+                {
+                    return BackendServiceResult<object>.CreateError($"Supabase 更新失敗：{response.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
-                return BackendServiceResult<string>.CreateError(ex.Message);
+                return BackendServiceResult<object>.CreateError($"更新 Supabase 訂閱失敗：{ex.Message}");
             }
+        }
+
+        public async Task<BackendServiceResult<bool>> DeleteSubscriptionAsync(string id)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    return BackendServiceResult<bool>.CreateError("Supabase 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+
+                var response = await _httpClient.DeleteAsync($"{_settings.ApiUrl}/rest/v1/subscriptions?id=eq.{id}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return BackendServiceResult<bool>.CreateSuccess(true);
+                }
+                else
+                {
+                    return BackendServiceResult<bool>.CreateError($"Supabase 刪除失敗：{response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<bool>.CreateError($"刪除 Supabase 訂閱失敗：{ex.Message}");
+            }
+        }
+
+        public void Dispose()
+        {
+            _httpClient?.Dispose();
         }
     }
 }

@@ -87,7 +87,7 @@ namespace wpfkiro20260101
                 // 使用 Appwrite 服務載入食品資料
                 if (_currentBackendService is AppwriteService appwriteService)
                 {
-                    var result = await appwriteService.GetFoodSubscriptionsAsync();
+                    var result = await appwriteService.GetFoodsAsync();
                     if (result.Success && result.Data != null)
                     {
                         UpdateFoodList(result.Data, "Appwrite");
@@ -114,7 +114,7 @@ namespace wpfkiro20260101
                 // 使用 Supabase 服務載入食品資料
                 if (_currentBackendService is SupabaseService supabaseService)
                 {
-                    var result = await supabaseService.GetFoodSubscriptionsAsync();
+                    var result = await supabaseService.GetFoodsAsync();
                     if (result.Success && result.Data != null)
                     {
                         UpdateFoodList(result.Data, "Supabase");
@@ -140,7 +140,7 @@ namespace wpfkiro20260101
                 // 使用 Back4App 服務載入食品資料
                 if (_currentBackendService is Back4AppService back4AppService)
                 {
-                    var result = await back4AppService.GetFoodSubscriptionsAsync();
+                    var result = await back4AppService.GetFoodsAsync();
                     if (result.Success && result.Data != null)
                     {
                         UpdateFoodList(result.Data, "Back4App");
@@ -166,7 +166,7 @@ namespace wpfkiro20260101
                 // 使用 MySQL 服務載入食品資料
                 if (_currentBackendService is MySQLService mySQLService)
                 {
-                    var result = await mySQLService.GetFoodSubscriptionsAsync();
+                    var result = await mySQLService.GetFoodsAsync();
                     if (result.Success && result.Data != null)
                     {
                         UpdateFoodList(result.Data, "MySQL");
@@ -210,22 +210,58 @@ namespace wpfkiro20260101
                 
                 if (foodData.Length == 0)
                 {
-                    // 顯示無資料訊息
-                    if (NoFoodDataMessage != null)
+                    // 創建新的無資料訊息元素
+                    var noDataCard = new Border
                     {
-                        NoFoodDataMessage.Visibility = Visibility.Visible;
-                        // 將無資料訊息添加到容器中
-                        FoodItemsContainer.Children.Add(NoFoodDataMessage);
-                    }
+                        Style = (Style)FindResource("FoodCardStyle"),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        MaxWidth = 400
+                    };
+                    
+                    var noDataPanel = new StackPanel
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Margin = new Thickness(20)
+                    };
+                    
+                    var iconText = new TextBlock
+                    {
+                        Text = "🍎",
+                        FontSize = 48,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CA3AF")),
+                        Margin = new Thickness(0, 0, 0, 10)
+                    };
+                    
+                    var titleText = new TextBlock
+                    {
+                        Text = "目前沒有食品資料",
+                        FontSize = 16,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6B7280")),
+                        FontWeight = FontWeights.Bold
+                    };
+                    
+                    var hintText = new TextBlock
+                    {
+                        Text = "點擊上方的「添加食品」按鈕來新增食品項目",
+                        FontSize = 12,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CA3AF")),
+                        Margin = new Thickness(0, 5, 0, 0),
+                        TextWrapping = TextWrapping.Wrap
+                    };
+                    
+                    noDataPanel.Children.Add(iconText);
+                    noDataPanel.Children.Add(titleText);
+                    noDataPanel.Children.Add(hintText);
+                    noDataCard.Child = noDataPanel;
+                    
+                    FoodItemsContainer.Children.Add(noDataCard);
                 }
                 else
                 {
-                    // 隱藏無資料訊息
-                    if (NoFoodDataMessage != null)
-                    {
-                        NoFoodDataMessage.Visibility = Visibility.Collapsed;
-                    }
-                    
                     // 動態創建食品項目
                     foreach (var item in foodData)
                     {

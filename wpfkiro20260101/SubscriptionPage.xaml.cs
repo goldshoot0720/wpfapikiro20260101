@@ -243,21 +243,55 @@ namespace wpfkiro20260101
                 
                 if (subscriptionData.Length == 0)
                 {
-                    // 顯示無資料訊息
-                    if (NoDataMessage != null)
+                    // 創建新的無資料訊息元素，而不是重用現有的
+                    var noDataCard = new Border
                     {
-                        NoDataMessage.Visibility = Visibility.Visible;
-                        SubscriptionItemsContainer.Children.Add(NoDataMessage);
-                    }
+                        Style = (Style)FindResource("SubscriptionCardStyle")
+                    };
+                    
+                    var noDataPanel = new StackPanel
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Margin = new Thickness(20)
+                    };
+                    
+                    var iconText = new TextBlock
+                    {
+                        Text = "📋",
+                        FontSize = 48,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CA3AF")),
+                        Margin = new Thickness(0, 0, 0, 10)
+                    };
+                    
+                    var titleText = new TextBlock
+                    {
+                        Text = "目前沒有訂閱資料",
+                        FontSize = 16,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6B7280")),
+                        FontWeight = FontWeights.Bold
+                    };
+                    
+                    var hintText = new TextBlock
+                    {
+                        Text = "點擊上方的「添加訂閱」按鈕來新增訂閱項目",
+                        FontSize = 12,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CA3AF")),
+                        Margin = new Thickness(0, 5, 0, 0)
+                    };
+                    
+                    noDataPanel.Children.Add(iconText);
+                    noDataPanel.Children.Add(titleText);
+                    noDataPanel.Children.Add(hintText);
+                    noDataCard.Child = noDataPanel;
+                    
+                    SubscriptionItemsContainer.Children.Add(noDataCard);
                 }
                 else
                 {
-                    // 隱藏無資料訊息
-                    if (NoDataMessage != null)
-                    {
-                        NoDataMessage.Visibility = Visibility.Collapsed;
-                    }
-                    
                     // 動態創建訂閱項目
                     foreach (var item in subscriptionData)
                     {

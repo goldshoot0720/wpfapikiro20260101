@@ -60,8 +60,8 @@ namespace wpfkiro20260101.Services
             }
         }
 
-        // 食品訂閱相關方法
-        public async Task<BackendServiceResult<object[]>> GetFoodSubscriptionsAsync()
+        // Food CRUD operations
+        public async Task<BackendServiceResult<object[]>> GetFoodsAsync()
         {
             try
             {
@@ -77,37 +77,34 @@ namespace wpfkiro20260101.Services
                     _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
                 }
 
-                // 假設 MySQL REST API 端點
-                var response = await _httpClient.GetAsync($"{_settings.ApiUrl}/api/databases/{_settings.ProjectId}/tables/food_subscriptions/rows");
+                var response = await _httpClient.GetAsync($"{_settings.ApiUrl}/api/databases/{_settings.ProjectId}/tables/foods/rows");
                 
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonContent = await response.Content.ReadAsStringAsync();
                     var data = JsonSerializer.Deserialize<JsonElement>(jsonContent);
                     
-                    var subscriptions = new List<object>();
+                    var foods = new List<object>();
                     
                     if (data.TryGetProperty("rows", out var rows))
                     {
                         foreach (var row in rows.EnumerateArray())
                         {
-                            subscriptions.Add(new
+                            foods.Add(new
                             {
                                 id = row.TryGetProperty("id", out var id) ? id.GetString() : "",
                                 foodName = row.TryGetProperty("food_name", out var foodName) ? foodName.GetString() : "",
-                                stringToDate = row.TryGetProperty("string_to_date", out var stringToDate) ? stringToDate.GetString() : "",
-                                dateTime = row.TryGetProperty("date_time", out var dateTime) && DateTime.TryParse(dateTime.GetString(), out var dt) ? dt : DateTime.Now,
                                 photo = row.TryGetProperty("photo", out var photo) ? photo.GetString() : "",
-                                price = row.TryGetProperty("price", out var price) ? price.GetInt32() : 0,
-                                shop = row.TryGetProperty("shop", out var shop) ? shop.GetString() : "",
                                 photoHash = row.TryGetProperty("photo_hash", out var photoHash) ? photoHash.GetString() : "",
+                                shop = row.TryGetProperty("shop", out var shop) ? shop.GetString() : "",
+                                note = row.TryGetProperty("note", out var note) ? note.GetString() : "",
                                 createdAt = row.TryGetProperty("created_at", out var createdAt) ? createdAt.GetString() : "",
                                 updatedAt = row.TryGetProperty("updated_at", out var updatedAt) ? updatedAt.GetString() : ""
                             });
                         }
                     }
                     
-                    return BackendServiceResult<object[]>.CreateSuccess(subscriptions.ToArray());
+                    return BackendServiceResult<object[]>.CreateSuccess(foods.ToArray());
                 }
                 else
                 {
@@ -116,11 +113,11 @@ namespace wpfkiro20260101.Services
             }
             catch (Exception ex)
             {
-                return BackendServiceResult<object[]>.CreateError($"載入 MySQL 食品訂閱資料失敗：{ex.Message}");
+                return BackendServiceResult<object[]>.CreateError($"載入 MySQL 食品資料失敗：{ex.Message}");
             }
         }
 
-        public async Task<BackendServiceResult<object>> CreateFoodSubscriptionAsync(object subscriptionData)
+        public async Task<BackendServiceResult<object>> CreateFoodAsync(object foodData)
         {
             try
             {
@@ -138,21 +135,227 @@ namespace wpfkiro20260101.Services
 
                 var data = new Dictionary<string, object>();
                 
-                if (subscriptionData is Models.FoodSubscription foodSub)
+                if (foodData is Models.Food food)
                 {
-                    data["food_name"] = foodSub.FoodName;
-                    data["string_to_date"] = foodSub.StringToDate;
-                    data["date_time"] = foodSub.DateTime.ToString("yyyy-MM-dd HH:mm:ss");
-                    data["photo"] = foodSub.Photo;
-                    data["price"] = foodSub.Price;
-                    data["shop"] = foodSub.Shop;
-                    data["photo_hash"] = foodSub.PhotoHash;
+                    data["food_name"] = food.FoodName;
+                    data["photo"] = food.Photo;
+                    data["photo_hash"] = food.PhotoHash;
+                    data["shop"] = food.Shop;
+                    data["note"] = food.Note;
+                    data["created_at"] = food.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                    data["updated_at"] = food.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
                 }
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/api/databases/{_settings.ProjectId}/tables/food_subscriptions/rows", content);
+                var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/api/databases/{_settings.ProjectId}/tables/foods/rows", content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    return BackendServiceResult<object>.CreateSuccess(new
+                    {
+                        id = result.TryGetProperty("id", out var id) ? id.GetString() : "",
+                        data = foodData
+                    });
+                }
+                else
+                {
+                    return BackendServiceResult<object>.CreateError($"MySQL 創建失敗：{response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object>.CreateError($"創建 MySQL 食品失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<object>> UpdateFoodAsync(string id, object foodData)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ProjectId))
+                {
+                    return BackendServiceResult<object>.CreateError("MySQL 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                if (!string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                }
+
+                var data = new Dictionary<string, object>();
+                
+                if (foodData is Models.Food food)
+                {
+                    data["food_name"] = food.FoodName;
+                    data["photo"] = food.Photo;
+                    data["photo_hash"] = food.PhotoHash;
+                    data["shop"] = food.Shop;
+                    data["note"] = food.Note;
+                    data["updated_at"] = food.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                }
+
+                var json = JsonSerializer.Serialize(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PutAsync($"{_settings.ApiUrl}/api/databases/{_settings.ProjectId}/tables/foods/rows/{id}", content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return BackendServiceResult<object>.CreateSuccess(new
+                    {
+                        id = id,
+                        data = foodData
+                    });
+                }
+                else
+                {
+                    return BackendServiceResult<object>.CreateError($"MySQL 更新失敗：{response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object>.CreateError($"更新 MySQL 食品失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<bool>> DeleteFoodAsync(string id)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ProjectId))
+                {
+                    return BackendServiceResult<bool>.CreateError("MySQL 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                if (!string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                }
+
+                var response = await _httpClient.DeleteAsync($"{_settings.ApiUrl}/api/databases/{_settings.ProjectId}/tables/foods/rows/{id}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return BackendServiceResult<bool>.CreateSuccess(true);
+                }
+                else
+                {
+                    return BackendServiceResult<bool>.CreateError($"MySQL 刪除失敗：{response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<bool>.CreateError($"刪除 MySQL 食品失敗：{ex.Message}");
+            }
+        }
+
+        // Subscription CRUD operations
+        public async Task<BackendServiceResult<object[]>> GetSubscriptionsAsync()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ProjectId))
+                {
+                    return BackendServiceResult<object[]>.CreateError("MySQL 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                if (!string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                }
+
+                var response = await _httpClient.GetAsync($"{_settings.ApiUrl}/api/databases/{_settings.ProjectId}/tables/subscriptions/rows");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonContent = await response.Content.ReadAsStringAsync();
+                    var data = JsonSerializer.Deserialize<JsonElement>(jsonContent);
+                    
+                    var subscriptions = new List<object>();
+                    
+                    if (data.TryGetProperty("rows", out var rows))
+                    {
+                        foreach (var row in rows.EnumerateArray())
+                        {
+                            subscriptions.Add(new
+                            {
+                                id = row.TryGetProperty("id", out var id) ? id.GetString() : "",
+                                subscriptionName = row.TryGetProperty("subscription_name", out var subscriptionName) ? subscriptionName.GetString() : "",
+                                nextDate = row.TryGetProperty("next_date", out var nextDate) && DateTime.TryParse(nextDate.GetString(), out var nd) ? nd : DateTime.Now,
+                                price = row.TryGetProperty("price", out var price) ? price.GetInt32() : 0,
+                                site = row.TryGetProperty("site", out var site) ? site.GetString() : "",
+                                account = row.TryGetProperty("account", out var account) ? account.GetString() : "",
+                                note = row.TryGetProperty("note", out var note) ? note.GetString() : "",
+                                stringToDate = row.TryGetProperty("string_to_date", out var stringToDate) ? stringToDate.GetString() : "",
+                                dateTime = row.TryGetProperty("date_time", out var dateTime) && DateTime.TryParse(dateTime.GetString(), out var dt) ? dt : DateTime.Now,
+                                foodId = row.TryGetProperty("food_id", out var foodId) ? foodId.GetString() : null,
+                                createdAt = row.TryGetProperty("created_at", out var createdAt) ? createdAt.GetString() : "",
+                                updatedAt = row.TryGetProperty("updated_at", out var updatedAt) ? updatedAt.GetString() : ""
+                            });
+                        }
+                    }
+                    
+                    return BackendServiceResult<object[]>.CreateSuccess(subscriptions.ToArray());
+                }
+                else
+                {
+                    return BackendServiceResult<object[]>.CreateError($"MySQL API 錯誤：{response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object[]>.CreateError($"載入 MySQL 訂閱資料失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<object>> CreateSubscriptionAsync(object subscriptionData)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ProjectId))
+                {
+                    return BackendServiceResult<object>.CreateError("MySQL 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                if (!string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                }
+
+                var data = new Dictionary<string, object>();
+                
+                if (subscriptionData is Models.Subscription subscription)
+                {
+                    data["subscription_name"] = subscription.SubscriptionName;
+                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-dd HH:mm:ss");
+                    data["price"] = subscription.Price;
+                    data["site"] = subscription.Site;
+                    data["account"] = subscription.Account;
+                    data["note"] = subscription.Note;
+                    data["string_to_date"] = subscription.StringToDate;
+                    data["date_time"] = subscription.DateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                    data["food_id"] = subscription.FoodId;
+                    data["created_at"] = subscription.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                    data["updated_at"] = subscription.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                }
+
+                var json = JsonSerializer.Serialize(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/api/databases/{_settings.ProjectId}/tables/subscriptions/rows", content);
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -172,7 +375,96 @@ namespace wpfkiro20260101.Services
             }
             catch (Exception ex)
             {
-                return BackendServiceResult<object>.CreateError($"創建 MySQL 食品訂閱失敗：{ex.Message}");
+                return BackendServiceResult<object>.CreateError($"創建 MySQL 訂閱失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<object>> UpdateSubscriptionAsync(string id, object subscriptionData)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ProjectId))
+                {
+                    return BackendServiceResult<object>.CreateError("MySQL 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                if (!string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                }
+
+                var data = new Dictionary<string, object>();
+                
+                if (subscriptionData is Models.Subscription subscription)
+                {
+                    data["subscription_name"] = subscription.SubscriptionName;
+                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-dd HH:mm:ss");
+                    data["price"] = subscription.Price;
+                    data["site"] = subscription.Site;
+                    data["account"] = subscription.Account;
+                    data["note"] = subscription.Note;
+                    data["string_to_date"] = subscription.StringToDate;
+                    data["date_time"] = subscription.DateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                    data["food_id"] = subscription.FoodId;
+                    data["updated_at"] = subscription.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                }
+
+                var json = JsonSerializer.Serialize(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PutAsync($"{_settings.ApiUrl}/api/databases/{_settings.ProjectId}/tables/subscriptions/rows/{id}", content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return BackendServiceResult<object>.CreateSuccess(new
+                    {
+                        id = id,
+                        data = subscriptionData
+                    });
+                }
+                else
+                {
+                    return BackendServiceResult<object>.CreateError($"MySQL 更新失敗：{response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object>.CreateError($"更新 MySQL 訂閱失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<bool>> DeleteSubscriptionAsync(string id)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
+                    string.IsNullOrWhiteSpace(_settings.ProjectId))
+                {
+                    return BackendServiceResult<bool>.CreateError("MySQL 設定不完整");
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                if (!string.IsNullOrWhiteSpace(_settings.ApiKey))
+                {
+                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                }
+
+                var response = await _httpClient.DeleteAsync($"{_settings.ApiUrl}/api/databases/{_settings.ProjectId}/tables/subscriptions/rows/{id}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return BackendServiceResult<bool>.CreateSuccess(true);
+                }
+                else
+                {
+                    return BackendServiceResult<bool>.CreateError($"MySQL 刪除失敗：{response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<bool>.CreateError($"刪除 MySQL 訂閱失敗：{ex.Message}");
             }
         }
 

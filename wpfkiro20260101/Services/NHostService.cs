@@ -81,5 +81,55 @@ namespace wpfkiro20260101.Services
                 return BackendServiceResult<string>.CreateError(ex.Message);
             }
         }
+
+        // Food CRUD operations
+        public async Task<BackendServiceResult<object[]>> GetFoodsAsync()
+        {
+            await Task.Delay(100);
+            return BackendServiceResult<object[]>.CreateSuccess(new object[0]);
+        }
+
+        public async Task<BackendServiceResult<object>> CreateFoodAsync(object foodData)
+        {
+            await Task.Delay(100);
+            return BackendServiceResult<object>.CreateSuccess(new { id = "temp-id", data = foodData });
+        }
+
+        public async Task<BackendServiceResult<object>> UpdateFoodAsync(string id, object foodData)
+        {
+            await Task.Delay(100);
+            return BackendServiceResult<object>.CreateSuccess(new { id = id, data = foodData });
+        }
+
+        public async Task<BackendServiceResult<bool>> DeleteFoodAsync(string id)
+        {
+            await Task.Delay(100);
+            return BackendServiceResult<bool>.CreateSuccess(true);
+        }
+
+        // Subscription CRUD operations
+        public async Task<BackendServiceResult<object[]>> GetSubscriptionsAsync()
+        {
+            await Task.Delay(100);
+            return BackendServiceResult<object[]>.CreateSuccess(new object[0]);
+        }
+
+        public async Task<BackendServiceResult<object>> CreateSubscriptionAsync(object subscriptionData)
+        {
+            await Task.Delay(100);
+            return BackendServiceResult<object>.CreateSuccess(new { id = "temp-id", data = subscriptionData });
+        }
+
+        public async Task<BackendServiceResult<object>> UpdateSubscriptionAsync(string id, object subscriptionData)
+        {
+            await Task.Delay(100);
+            return BackendServiceResult<object>.CreateSuccess(new { id = id, data = subscriptionData });
+        }
+
+        public async Task<BackendServiceResult<bool>> DeleteSubscriptionAsync(string id)
+        {
+            await Task.Delay(100);
+            return BackendServiceResult<bool>.CreateSuccess(true);
+        }
     }
 }

@@ -225,8 +225,8 @@ namespace wpfkiro20260101.Services
             }
         }
 
-        // Food specific methods
-        public async Task<BackendServiceResult<object[]>> GetFoodSubscriptionsAsync()
+        // Food CRUD operations
+        public async Task<BackendServiceResult<object[]>> GetFoodsAsync()
         {
             try
             {
@@ -259,12 +259,11 @@ namespace wpfkiro20260101.Services
                 var foods = documents.Documents.Select(doc => new
                 {
                     id = doc.Id,
-                    foodName = doc.Data.TryGetValue("name", out var name) ? name?.ToString() ?? "" : "",
-                    toDate = doc.Data.TryGetValue("todate", out var todate) ? todate?.ToString() ?? "" : "",
+                    foodName = doc.Data.TryGetValue("food_name", out var foodName) ? foodName?.ToString() ?? "" : "",
                     photo = doc.Data.TryGetValue("photo", out var photo) ? photo?.ToString() ?? "" : "",
-                    price = doc.Data.TryGetValue("price", out var price) && int.TryParse(price?.ToString(), out var p) ? p : 0,
+                    photoHash = doc.Data.TryGetValue("photo_hash", out var photoHash) ? photoHash?.ToString() ?? "" : "",
                     shop = doc.Data.TryGetValue("shop", out var shop) ? shop?.ToString() ?? "" : "",
-                    photoHash = doc.Data.TryGetValue("photohash", out var photoHash) ? photoHash?.ToString() ?? "" : "",
+                    note = doc.Data.TryGetValue("note", out var note) ? note?.ToString() ?? "" : "",
                     createdAt = doc.CreatedAt,
                     updatedAt = doc.UpdatedAt
                 }).ToArray<object>();
@@ -277,7 +276,170 @@ namespace wpfkiro20260101.Services
             }
         }
 
-        // Subscription specific methods
+        public async Task<BackendServiceResult<object>> CreateFoodAsync(object foodData)
+        {
+            try
+            {
+                if (_client == null)
+                {
+                    var initResult = await InitializeAsync();
+                    if (!initResult)
+                    {
+                        return BackendServiceResult<object>.CreateError("Appwrite 客戶端未初始化");
+                    }
+                }
+
+                var settings = AppSettings.Instance;
+                if (string.IsNullOrWhiteSpace(settings.DatabaseId) || 
+                    string.IsNullOrWhiteSpace(settings.FoodCollectionId))
+                {
+                    return BackendServiceResult<object>.CreateError("資料庫ID或食品集合ID未設定");
+                }
+
+                // 使用 Appwrite Databases 服務
+                var databases = new Appwrite.Services.Databases(_client);
+                
+                // 將 foodData 轉換為字典 - 對照實際Appwrite欄位
+                var data = new Dictionary<string, object>();
+                
+                if (foodData is Models.Food food)
+                {
+                    data["food_name"] = food.FoodName;
+                    data["photo"] = food.Photo;
+                    data["photo_hash"] = food.PhotoHash;
+                    data["shop"] = food.Shop;
+                    data["note"] = food.Note;
+                }
+                else
+                {
+                    return BackendServiceResult<object>.CreateError("無效的食品資料格式");
+                }
+
+                // 創建文檔
+                var document = await databases.CreateDocument(
+                    databaseId: settings.DatabaseId,
+                    collectionId: settings.FoodCollectionId,
+                    documentId: Appwrite.ID.Unique(),
+                    data: data
+                );
+
+                var result = new
+                {
+                    id = document.Id,
+                    data = foodData,
+                    createdAt = document.CreatedAt,
+                    updatedAt = document.UpdatedAt
+                };
+
+                return BackendServiceResult<object>.CreateSuccess(result);
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object>.CreateError($"創建食品失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<object>> UpdateFoodAsync(string id, object foodData)
+        {
+            try
+            {
+                if (_client == null)
+                {
+                    var initResult = await InitializeAsync();
+                    if (!initResult)
+                    {
+                        return BackendServiceResult<object>.CreateError("Appwrite 客戶端未初始化");
+                    }
+                }
+
+                var settings = AppSettings.Instance;
+                if (string.IsNullOrWhiteSpace(settings.DatabaseId) || 
+                    string.IsNullOrWhiteSpace(settings.FoodCollectionId))
+                {
+                    return BackendServiceResult<object>.CreateError("資料庫ID或食品集合ID未設定");
+                }
+
+                // 使用 Appwrite Databases 服務
+                var databases = new Appwrite.Services.Databases(_client);
+                
+                // 將 foodData 轉換為字典 - 對照實際Appwrite欄位
+                var data = new Dictionary<string, object>();
+                
+                if (foodData is Models.Food food)
+                {
+                    data["food_name"] = food.FoodName;
+                    data["photo"] = food.Photo;
+                    data["photo_hash"] = food.PhotoHash;
+                    data["shop"] = food.Shop;
+                    data["note"] = food.Note;
+                }
+                else
+                {
+                    return BackendServiceResult<object>.CreateError("無效的食品資料格式");
+                }
+
+                // 更新文檔
+                var document = await databases.UpdateDocument(
+                    databaseId: settings.DatabaseId,
+                    collectionId: settings.FoodCollectionId,
+                    documentId: id,
+                    data: data
+                );
+
+                var result = new
+                {
+                    id = document.Id,
+                    data = foodData,
+                    updatedAt = document.UpdatedAt
+                };
+
+                return BackendServiceResult<object>.CreateSuccess(result);
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object>.CreateError($"更新食品失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<bool>> DeleteFoodAsync(string id)
+        {
+            try
+            {
+                if (_client == null)
+                {
+                    var initResult = await InitializeAsync();
+                    if (!initResult)
+                    {
+                        return BackendServiceResult<bool>.CreateError("Appwrite 客戶端未初始化");
+                    }
+                }
+
+                var settings = AppSettings.Instance;
+                if (string.IsNullOrWhiteSpace(settings.DatabaseId) || 
+                    string.IsNullOrWhiteSpace(settings.FoodCollectionId))
+                {
+                    return BackendServiceResult<bool>.CreateError("資料庫ID或食品集合ID未設定");
+                }
+
+                // 使用 Appwrite Databases 服務
+                var databases = new Appwrite.Services.Databases(_client);
+                
+                // 刪除文檔
+                await databases.DeleteDocument(
+                    databaseId: settings.DatabaseId,
+                    collectionId: settings.FoodCollectionId,
+                    documentId: id
+                );
+
+                return BackendServiceResult<bool>.CreateSuccess(true);
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<bool>.CreateError($"刪除食品失敗：{ex.Message}");
+            }
+        }
+
+        // Subscription CRUD operations
         public async Task<BackendServiceResult<object[]>> GetSubscriptionsAsync()
         {
             try
@@ -311,12 +473,15 @@ namespace wpfkiro20260101.Services
                 var subscriptions = documents.Documents.Select(doc => new
                 {
                     id = doc.Id,
-                    name = doc.Data.TryGetValue("name", out var name) ? name?.ToString() ?? "" : "",
-                    nextDate = doc.Data.TryGetValue("nextdate", out var nextdate) ? nextdate?.ToString() ?? "" : "",
+                    subscriptionName = doc.Data.TryGetValue("subscription_name", out var subscriptionName) ? subscriptionName?.ToString() ?? "" : "",
+                    nextDate = doc.Data.TryGetValue("next_date", out var nextDate) ? nextDate?.ToString() ?? "" : "",
                     price = doc.Data.TryGetValue("price", out var price) && int.TryParse(price?.ToString(), out var p) ? p : 0,
                     site = doc.Data.TryGetValue("site", out var site) ? site?.ToString() ?? "" : "",
-                    note = doc.Data.TryGetValue("note", out var note) ? note?.ToString() ?? "" : "",
                     account = doc.Data.TryGetValue("account", out var account) ? account?.ToString() ?? "" : "",
+                    note = doc.Data.TryGetValue("note", out var note) ? note?.ToString() ?? "" : "",
+                    stringToDate = doc.Data.TryGetValue("string_to_date", out var stringToDate) ? stringToDate?.ToString() ?? "" : "",
+                    dateTime = doc.Data.TryGetValue("date_time", out var dateTime) ? dateTime?.ToString() ?? "" : "",
+                    foodId = doc.Data.TryGetValue("food_id", out var foodId) ? foodId?.ToString() : null,
                     createdAt = doc.CreatedAt,
                     updatedAt = doc.UpdatedAt
                 }).ToArray<object>();
@@ -329,7 +494,7 @@ namespace wpfkiro20260101.Services
             }
         }
 
-        public async Task<BackendServiceResult<object>> CreateFoodSubscriptionAsync(object subscriptionData)
+        public async Task<BackendServiceResult<object>> CreateSubscriptionAsync(object subscriptionData)
         {
             try
             {
@@ -344,9 +509,9 @@ namespace wpfkiro20260101.Services
 
                 var settings = AppSettings.Instance;
                 if (string.IsNullOrWhiteSpace(settings.DatabaseId) || 
-                    string.IsNullOrWhiteSpace(settings.FoodCollectionId))
+                    string.IsNullOrWhiteSpace(settings.SubscriptionCollectionId))
                 {
-                    return BackendServiceResult<object>.CreateError("資料庫ID或食品集合ID未設定");
+                    return BackendServiceResult<object>.CreateError("資料庫ID或訂閱集合ID未設定");
                 }
 
                 // 使用 Appwrite Databases 服務
@@ -355,24 +520,30 @@ namespace wpfkiro20260101.Services
                 // 將 subscriptionData 轉換為字典 - 對照實際Appwrite欄位
                 var data = new Dictionary<string, object>();
                 
-                if (subscriptionData is Models.FoodSubscription foodSub)
+                if (subscriptionData is Models.Subscription subscription)
                 {
-                    data["name"] = foodSub.FoodName;
-                    data["todate"] = foodSub.StringToDate;
-                    data["photo"] = foodSub.Photo;
-                    data["price"] = foodSub.Price;
-                    data["shop"] = foodSub.Shop;
-                    data["photohash"] = foodSub.PhotoHash;
+                    data["subscription_name"] = subscription.SubscriptionName;
+                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    data["price"] = subscription.Price;
+                    data["site"] = subscription.Site;
+                    data["account"] = subscription.Account;
+                    data["note"] = subscription.Note;
+                    data["string_to_date"] = subscription.StringToDate;
+                    data["date_time"] = subscription.DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    if (!string.IsNullOrEmpty(subscription.FoodId))
+                    {
+                        data["food_id"] = subscription.FoodId;
+                    }
                 }
                 else
                 {
-                    return BackendServiceResult<object>.CreateError("無效的食品資料格式");
+                    return BackendServiceResult<object>.CreateError("無效的訂閱資料格式");
                 }
 
                 // 創建文檔
                 var document = await databases.CreateDocument(
                     databaseId: settings.DatabaseId,
-                    collectionId: settings.FoodCollectionId,
+                    collectionId: settings.SubscriptionCollectionId,
                     documentId: Appwrite.ID.Unique(),
                     data: data
                 );
@@ -389,11 +560,11 @@ namespace wpfkiro20260101.Services
             }
             catch (Exception ex)
             {
-                return BackendServiceResult<object>.CreateError($"創建食品失敗：{ex.Message}");
+                return BackendServiceResult<object>.CreateError($"創建訂閱失敗：{ex.Message}");
             }
         }
 
-        public async Task<BackendServiceResult<object>> UpdateFoodSubscriptionAsync(string subscriptionId, object subscriptionData)
+        public async Task<BackendServiceResult<object>> UpdateSubscriptionAsync(string id, object subscriptionData)
         {
             try
             {
@@ -408,9 +579,9 @@ namespace wpfkiro20260101.Services
 
                 var settings = AppSettings.Instance;
                 if (string.IsNullOrWhiteSpace(settings.DatabaseId) || 
-                    string.IsNullOrWhiteSpace(settings.FoodCollectionId))
+                    string.IsNullOrWhiteSpace(settings.SubscriptionCollectionId))
                 {
-                    return BackendServiceResult<object>.CreateError("資料庫ID或食品集合ID未設定");
+                    return BackendServiceResult<object>.CreateError("資料庫ID或訂閱集合ID未設定");
                 }
 
                 // 使用 Appwrite Databases 服務
@@ -419,25 +590,31 @@ namespace wpfkiro20260101.Services
                 // 將 subscriptionData 轉換為字典 - 對照實際Appwrite欄位
                 var data = new Dictionary<string, object>();
                 
-                if (subscriptionData is Models.FoodSubscription foodSub)
+                if (subscriptionData is Models.Subscription subscription)
                 {
-                    data["name"] = foodSub.FoodName;
-                    data["todate"] = foodSub.StringToDate;
-                    data["photo"] = foodSub.Photo;
-                    data["price"] = foodSub.Price;
-                    data["shop"] = foodSub.Shop;
-                    data["photohash"] = foodSub.PhotoHash;
+                    data["subscription_name"] = subscription.SubscriptionName;
+                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    data["price"] = subscription.Price;
+                    data["site"] = subscription.Site;
+                    data["account"] = subscription.Account;
+                    data["note"] = subscription.Note;
+                    data["string_to_date"] = subscription.StringToDate;
+                    data["date_time"] = subscription.DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    if (!string.IsNullOrEmpty(subscription.FoodId))
+                    {
+                        data["food_id"] = subscription.FoodId;
+                    }
                 }
                 else
                 {
-                    return BackendServiceResult<object>.CreateError("無效的食品資料格式");
+                    return BackendServiceResult<object>.CreateError("無效的訂閱資料格式");
                 }
 
                 // 更新文檔
                 var document = await databases.UpdateDocument(
                     databaseId: settings.DatabaseId,
-                    collectionId: settings.FoodCollectionId,
-                    documentId: subscriptionId,
+                    collectionId: settings.SubscriptionCollectionId,
+                    documentId: id,
                     data: data
                 );
 
@@ -452,11 +629,11 @@ namespace wpfkiro20260101.Services
             }
             catch (Exception ex)
             {
-                return BackendServiceResult<object>.CreateError($"更新食品失敗：{ex.Message}");
+                return BackendServiceResult<object>.CreateError($"更新訂閱失敗：{ex.Message}");
             }
         }
 
-        public async Task<BackendServiceResult<bool>> DeleteFoodSubscriptionAsync(string subscriptionId)
+        public async Task<BackendServiceResult<bool>> DeleteSubscriptionAsync(string id)
         {
             try
             {
@@ -471,9 +648,9 @@ namespace wpfkiro20260101.Services
 
                 var settings = AppSettings.Instance;
                 if (string.IsNullOrWhiteSpace(settings.DatabaseId) || 
-                    string.IsNullOrWhiteSpace(settings.FoodCollectionId))
+                    string.IsNullOrWhiteSpace(settings.SubscriptionCollectionId))
                 {
-                    return BackendServiceResult<bool>.CreateError("資料庫ID或食品集合ID未設定");
+                    return BackendServiceResult<bool>.CreateError("資料庫ID或訂閱集合ID未設定");
                 }
 
                 // 使用 Appwrite Databases 服務
@@ -482,15 +659,15 @@ namespace wpfkiro20260101.Services
                 // 刪除文檔
                 await databases.DeleteDocument(
                     databaseId: settings.DatabaseId,
-                    collectionId: settings.FoodCollectionId,
-                    documentId: subscriptionId
+                    collectionId: settings.SubscriptionCollectionId,
+                    documentId: id
                 );
 
                 return BackendServiceResult<bool>.CreateSuccess(true);
             }
             catch (Exception ex)
             {
-                return BackendServiceResult<bool>.CreateError($"刪除食品失敗：{ex.Message}");
+                return BackendServiceResult<bool>.CreateError($"刪除訂閱失敗：{ex.Message}");
             }
         }
 
