@@ -13,7 +13,7 @@ namespace wpfkiro20260101
             InitializeComponent();
             
             // 設定預設值
-            ExpiryDatePicker.SelectedDate = DateTime.Now.AddDays(7); // 預設7天後到期
+            ExpiryDatePicker.SelectedDate = DateTime.Now.AddDays(7).Date; // 預設7天後到期
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
@@ -48,7 +48,19 @@ namespace wpfkiro20260101
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine($"驗證通過 - 食品名稱: {FoodNameTextBox.Text}, 價格: {price}");
+                // 驗證數量
+                int quantity = 1;
+                if (!string.IsNullOrWhiteSpace(QuantityTextBox.Text))
+                {
+                    if (!int.TryParse(QuantityTextBox.Text, out quantity) || quantity <= 0)
+                    {
+                        MessageBox.Show("請輸入有效的數量（正整數）", "驗證錯誤", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        QuantityTextBox.Focus();
+                        return;
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine($"驗證通過 - 食品名稱: {FoodNameTextBox.Text}, 價格: {price}, 數量: {quantity}");
 
                 // 創建新食品
                 NewFood = new Food
@@ -57,6 +69,7 @@ namespace wpfkiro20260101
                     FoodName = FoodNameTextBox.Text.Trim(),
                     Shop = ShopTextBox.Text.Trim(),
                     Price = (int)Math.Round(price),
+                    Quantity = quantity,
                     Photo = PhotoTextBox.Text.Trim(),
                     PhotoHash = "", // 暫時留空
                     Note = NotesTextBox.Text.Trim(),

@@ -134,7 +134,7 @@ namespace wpfkiro20260101
                         website = "https://supabase.com",
                         price = 25.0,
                         currency = "USD",
-                        nextPayment = DateTime.Now.AddDays(20),
+                        nextPayment = DateTime.Now.AddDays(20).Date,
                         category = "資料庫服務"
                     }
                 };
@@ -159,7 +159,7 @@ namespace wpfkiro20260101
                         website = "https://www.back4app.com",
                         price = 50.0,
                         currency = "USD",
-                        nextPayment = DateTime.Now.AddDays(25),
+                        nextPayment = DateTime.Now.AddDays(25).Date,
                         category = "後端服務"
                     }
                 };
@@ -184,7 +184,7 @@ namespace wpfkiro20260101
                         website = "https://www.mysql.com",
                         price = 35.0,
                         currency = "USD",
-                        nextPayment = DateTime.Now.AddDays(10),
+                        nextPayment = DateTime.Now.AddDays(10).Date,
                         category = "資料庫"
                     },
                     new { 
@@ -193,7 +193,7 @@ namespace wpfkiro20260101
                         website = "https://www.mysql.com/backup",
                         price = 15.0,
                         currency = "USD",
-                        nextPayment = DateTime.Now.AddDays(5),
+                        nextPayment = DateTime.Now.AddDays(5).Date,
                         category = "備份服務"
                     }
                 };
@@ -218,7 +218,7 @@ namespace wpfkiro20260101
                         website = "https://www.contentful.com",
                         price = 489.0,
                         currency = "USD",
-                        nextPayment = DateTime.Now.AddDays(30),
+                        nextPayment = DateTime.Now.AddDays(30).Date,
                         category = "內容管理"
                     }
                 };
@@ -348,8 +348,10 @@ namespace wpfkiro20260101
             try
             {
                 // 嘗試解析不同的屬性名稱
-                if (subscriptionItem.GetType().GetProperty("name")?.GetValue(subscriptionItem) is string itemName)
+                if (subscriptionItem.GetType().GetProperty("subscriptionName")?.GetValue(subscriptionItem) is string itemName)
                     name = itemName;
+                else if (subscriptionItem.GetType().GetProperty("name")?.GetValue(subscriptionItem) is string itemName2)
+                    name = itemName2;
                 else if (subscriptionItem.GetType().GetProperty("SubscriptionName")?.GetValue(subscriptionItem) is string subName)
                     name = subName;
                 
@@ -790,8 +792,15 @@ namespace wpfkiro20260101
                 
                 if (subscriptionItem.GetType().GetProperty("id")?.GetValue(subscriptionItem) is string id)
                     subscription.Id = id;
-                if (subscriptionItem.GetType().GetProperty("subscriptionName")?.GetValue(subscriptionItem) is string name)
+                
+                // 嘗試解析不同的名稱屬性
+                if (subscriptionItem.GetType().GetProperty("subscriptionName")?.GetValue(subscriptionItem) is string subscriptionName)
+                    subscription.SubscriptionName = subscriptionName;
+                else if (subscriptionItem.GetType().GetProperty("name")?.GetValue(subscriptionItem) is string name)
                     subscription.SubscriptionName = name;
+                else if (subscriptionItem.GetType().GetProperty("SubscriptionName")?.GetValue(subscriptionItem) is string subName)
+                    subscription.SubscriptionName = subName;
+                
                 if (subscriptionItem.GetType().GetProperty("site")?.GetValue(subscriptionItem) is string site)
                     subscription.Site = site;
                 if (subscriptionItem.GetType().GetProperty("price")?.GetValue(subscriptionItem) is int price)
@@ -842,8 +851,14 @@ namespace wpfkiro20260101
                     {
                         if (subscriptionItem.GetType().GetProperty("id")?.GetValue(subscriptionItem) is string id)
                             subscriptionId = id;
-                        if (subscriptionItem.GetType().GetProperty("subscriptionName")?.GetValue(subscriptionItem) is string name)
-                            subscriptionName = name;
+                        
+                        // 嘗試解析不同的名稱屬性
+                        if (subscriptionItem.GetType().GetProperty("subscriptionName")?.GetValue(subscriptionItem) is string subName1)
+                            subscriptionName = subName1;
+                        else if (subscriptionItem.GetType().GetProperty("name")?.GetValue(subscriptionItem) is string subName2)
+                            subscriptionName = subName2;
+                        else if (subscriptionItem.GetType().GetProperty("SubscriptionName")?.GetValue(subscriptionItem) is string subName3)
+                            subscriptionName = subName3;
                     }
                     catch (Exception ex)
                     {

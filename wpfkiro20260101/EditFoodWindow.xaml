@@ -36,6 +36,11 @@
                     <TextBox x:Name="PriceTextBox" Height="35" Padding="10" Margin="0,0,0,15"
                            BorderBrush="#CCCCCC" BorderThickness="1"/>
 
+                    <!-- 數量 -->
+                    <TextBlock Text="數量" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox x:Name="QuantityTextBox" Height="35" Padding="10" Margin="0,0,0,15"
+                           BorderBrush="#CCCCCC" BorderThickness="1"/>
+
                     <!-- 到期日期 -->
                     <TextBlock Text="到期日期" FontWeight="Bold" Margin="0,0,0,5"/>
                     <DatePicker x:Name="ExpiryDatePicker" Height="35" Margin="0,0,0,15"

@@ -7,6 +7,7 @@ namespace wpfkiro20260101.Models
         public string Id { get; set; } = string.Empty;
         public string FoodName { get; set; } = string.Empty;
         public int Price { get; set; } = 0;
+        public int Quantity { get; set; } = 1;
         public string Photo { get; set; } = string.Empty;
         public string PhotoHash { get; set; } = string.Empty;
         public string Shop { get; set; } = string.Empty;

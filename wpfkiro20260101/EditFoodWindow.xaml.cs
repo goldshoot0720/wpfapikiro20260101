@@ -24,6 +24,7 @@ namespace wpfkiro20260101
                 FoodNameTextBox.Text = _originalFood.FoodName;
                 ShopTextBox.Text = _originalFood.Shop;
                 PriceTextBox.Text = _originalFood.Price.ToString();
+                QuantityTextBox.Text = _originalFood.Quantity.ToString();
                 PhotoTextBox.Text = _originalFood.Photo;
                 NotesTextBox.Text = _originalFood.Note;
 
@@ -74,7 +75,19 @@ namespace wpfkiro20260101
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine($"驗證通過 - 食品名稱: {FoodNameTextBox.Text}, 價格: {price}");
+                // 驗證數量
+                int quantity = 1;
+                if (!string.IsNullOrWhiteSpace(QuantityTextBox.Text))
+                {
+                    if (!int.TryParse(QuantityTextBox.Text, out quantity) || quantity <= 0)
+                    {
+                        MessageBox.Show("請輸入有效的數量（正整數）", "驗證錯誤", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        QuantityTextBox.Focus();
+                        return;
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine($"驗證通過 - 食品名稱: {FoodNameTextBox.Text}, 價格: {price}, 數量: {quantity}");
 
                 // 創建更新後的食品物件
                 UpdatedFood = new Food
@@ -83,6 +96,7 @@ namespace wpfkiro20260101
                     FoodName = FoodNameTextBox.Text.Trim(),
                     Shop = ShopTextBox.Text.Trim(),
                     Price = (int)Math.Round(price),
+                    Quantity = quantity,
                     Photo = PhotoTextBox.Text.Trim(),
                     PhotoHash = _originalFood.PhotoHash, // 保持原有PhotoHash
                     Note = NotesTextBox.Text.Trim(),

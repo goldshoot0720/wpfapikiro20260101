@@ -296,6 +296,7 @@ namespace wpfkiro20260101
             // 解析食品項目資料
             var name = "未知食品";
             var price = "0";
+            var quantity = "1";
             var shop = "";
             var toDate = "";
             var photo = "";
@@ -314,6 +315,10 @@ namespace wpfkiro20260101
                     price = $"NT$ {itemPrice}";
                 if (foodItem.GetType().GetProperty("Price")?.GetValue(foodItem) is int itemPrice2)
                     price = $"NT$ {itemPrice2}";
+                if (foodItem.GetType().GetProperty("quantity")?.GetValue(foodItem) is int itemQuantity)
+                    quantity = itemQuantity.ToString();
+                if (foodItem.GetType().GetProperty("Quantity")?.GetValue(foodItem) is int itemQuantity2)
+                    quantity = itemQuantity2.ToString();
                 if (foodItem.GetType().GetProperty("shop")?.GetValue(foodItem) is string itemShop)
                     shop = itemShop;
                 if (foodItem.GetType().GetProperty("Shop")?.GetValue(foodItem) is string itemShop2)
@@ -375,15 +380,32 @@ namespace wpfkiro20260101
             };
             stackPanel.Children.Add(nameText);
 
-            // 價格
+            // 價格和數量
+            var priceQuantityGrid = new Grid();
+            priceQuantityGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            priceQuantityGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
             var priceText = new TextBlock
             {
                 Text = $"價格: {price}",
                 FontSize = 12,
                 Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6B7280")),
-                Margin = new Thickness(0, 0, 0, 5)
+                Margin = new Thickness(0, 0, 5, 5)
             };
-            stackPanel.Children.Add(priceText);
+            Grid.SetColumn(priceText, 0);
+
+            var quantityText = new TextBlock
+            {
+                Text = $"數量: {quantity}",
+                FontSize = 12,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6B7280")),
+                Margin = new Thickness(5, 0, 0, 5)
+            };
+            Grid.SetColumn(quantityText, 1);
+
+            priceQuantityGrid.Children.Add(priceText);
+            priceQuantityGrid.Children.Add(quantityText);
+            stackPanel.Children.Add(priceQuantityGrid);
 
             // 商店
             if (!string.IsNullOrEmpty(shop))
@@ -609,12 +631,20 @@ namespace wpfkiro20260101
                     food.Shop = shop;
                 if (foodItem.GetType().GetProperty("price")?.GetValue(foodItem) is int price)
                     food.Price = price;
+                if (foodItem.GetType().GetProperty("quantity")?.GetValue(foodItem) is int quantity)
+                    food.Quantity = quantity;
                 if (foodItem.GetType().GetProperty("photo")?.GetValue(foodItem) is string photo)
                     food.Photo = photo;
                 if (foodItem.GetType().GetProperty("photoHash")?.GetValue(foodItem) is string photoHash)
                     food.PhotoHash = photoHash;
                 if (foodItem.GetType().GetProperty("note")?.GetValue(foodItem) is string note)
                     food.Note = note;
+                if (foodItem.GetType().GetProperty("description")?.GetValue(foodItem) is string description)
+                    food.Description = description;
+                if (foodItem.GetType().GetProperty("category")?.GetValue(foodItem) is string category)
+                    food.Category = category;
+                if (foodItem.GetType().GetProperty("storageLocation")?.GetValue(foodItem) is string storageLocation)
+                    food.StorageLocation = storageLocation;
                 
                 // 處理到期日期
                 if (foodItem.GetType().GetProperty("toDate")?.GetValue(foodItem) is string toDateStr)

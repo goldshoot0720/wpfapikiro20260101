@@ -13,7 +13,7 @@ namespace wpfkiro20260101
             InitializeComponent();
             
             // 設定預設值
-            NextPaymentDatePicker.SelectedDate = DateTime.Now.AddDays(30);
+            NextPaymentDatePicker.SelectedDate = DateTime.Now.AddDays(30).Date;
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)

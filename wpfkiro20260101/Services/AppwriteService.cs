@@ -260,9 +260,14 @@ namespace wpfkiro20260101.Services
                 {
                     id = doc.Id,
                     foodName = doc.Data.TryGetValue("food_name", out var foodName) ? foodName?.ToString() ?? "" : "",
+                    price = doc.Data.TryGetValue("price", out var price) ? (int.TryParse(price?.ToString(), out var p) ? p : 0) : 0,
                     photo = doc.Data.TryGetValue("photo", out var photo) ? photo?.ToString() ?? "" : "",
                     photoHash = doc.Data.TryGetValue("photo_hash", out var photoHash) ? photoHash?.ToString() ?? "" : "",
                     shop = doc.Data.TryGetValue("shop", out var shop) ? shop?.ToString() ?? "" : "",
+                    toDate = doc.Data.TryGetValue("to_date", out var toDate) ? toDate?.ToString() ?? "" : "",
+                    description = doc.Data.TryGetValue("description", out var description) ? description?.ToString() ?? "" : "",
+                    category = doc.Data.TryGetValue("category", out var category) ? category?.ToString() ?? "" : "",
+                    storageLocation = doc.Data.TryGetValue("storage_location", out var storageLocation) ? storageLocation?.ToString() ?? "" : "",
                     note = doc.Data.TryGetValue("note", out var note) ? note?.ToString() ?? "" : "",
                     createdAt = doc.CreatedAt,
                     updatedAt = doc.UpdatedAt
@@ -305,9 +310,15 @@ namespace wpfkiro20260101.Services
                 if (foodData is Models.Food food)
                 {
                     data["food_name"] = food.FoodName;
+                    data["price"] = food.Price;
+                    data["quantity"] = food.Quantity;
                     data["photo"] = food.Photo;
                     data["photo_hash"] = food.PhotoHash;
                     data["shop"] = food.Shop;
+                    data["to_date"] = food.ToDate;
+                    data["description"] = food.Description;
+                    data["category"] = food.Category;
+                    data["storage_location"] = food.StorageLocation;
                     data["note"] = food.Note;
                 }
                 else
@@ -368,9 +379,15 @@ namespace wpfkiro20260101.Services
                 if (foodData is Models.Food food)
                 {
                     data["food_name"] = food.FoodName;
+                    data["price"] = food.Price;
+                    data["quantity"] = food.Quantity;
                     data["photo"] = food.Photo;
                     data["photo_hash"] = food.PhotoHash;
                     data["shop"] = food.Shop;
+                    data["to_date"] = food.ToDate;
+                    data["description"] = food.Description;
+                    data["category"] = food.Category;
+                    data["storage_location"] = food.StorageLocation;
                     data["note"] = food.Note;
                 }
                 else

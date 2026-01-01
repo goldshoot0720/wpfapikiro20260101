@@ -94,9 +94,14 @@ namespace wpfkiro20260101.Services
                             {
                                 id = row.TryGetProperty("id", out var id) ? id.GetString() : "",
                                 foodName = row.TryGetProperty("food_name", out var foodName) ? foodName.GetString() : "",
+                                price = row.TryGetProperty("price", out var price) ? (price.ValueKind == JsonValueKind.Number ? price.GetInt32() : 0) : 0,
                                 photo = row.TryGetProperty("photo", out var photo) ? photo.GetString() : "",
                                 photoHash = row.TryGetProperty("photo_hash", out var photoHash) ? photoHash.GetString() : "",
                                 shop = row.TryGetProperty("shop", out var shop) ? shop.GetString() : "",
+                                toDate = row.TryGetProperty("to_date", out var toDate) ? toDate.GetString() : "",
+                                description = row.TryGetProperty("description", out var description) ? description.GetString() : "",
+                                category = row.TryGetProperty("category", out var category) ? category.GetString() : "",
+                                storageLocation = row.TryGetProperty("storage_location", out var storageLocation) ? storageLocation.GetString() : "",
                                 note = row.TryGetProperty("note", out var note) ? note.GetString() : "",
                                 createdAt = row.TryGetProperty("created_at", out var createdAt) ? createdAt.GetString() : "",
                                 updatedAt = row.TryGetProperty("updated_at", out var updatedAt) ? updatedAt.GetString() : ""
@@ -138,9 +143,14 @@ namespace wpfkiro20260101.Services
                 if (foodData is Models.Food food)
                 {
                     data["food_name"] = food.FoodName;
+                    data["price"] = food.Price;
                     data["photo"] = food.Photo;
                     data["photo_hash"] = food.PhotoHash;
                     data["shop"] = food.Shop;
+                    data["to_date"] = food.ToDate;
+                    data["description"] = food.Description;
+                    data["category"] = food.Category;
+                    data["storage_location"] = food.StorageLocation;
                     data["note"] = food.Note;
                     data["created_at"] = food.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
                     data["updated_at"] = food.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
@@ -194,9 +204,14 @@ namespace wpfkiro20260101.Services
                 if (foodData is Models.Food food)
                 {
                     data["food_name"] = food.FoodName;
+                    data["price"] = food.Price;
                     data["photo"] = food.Photo;
                     data["photo_hash"] = food.PhotoHash;
                     data["shop"] = food.Shop;
+                    data["to_date"] = food.ToDate;
+                    data["description"] = food.Description;
+                    data["category"] = food.Category;
+                    data["storage_location"] = food.StorageLocation;
                     data["note"] = food.Note;
                     data["updated_at"] = food.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
                 }
@@ -340,7 +355,7 @@ namespace wpfkiro20260101.Services
                 if (subscriptionData is Models.Subscription subscription)
                 {
                     data["subscription_name"] = subscription.SubscriptionName;
-                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-dd HH:mm:ss");
+                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-dd");
                     data["price"] = subscription.Price;
                     data["site"] = subscription.Site;
                     data["account"] = subscription.Account;
@@ -400,7 +415,7 @@ namespace wpfkiro20260101.Services
                 if (subscriptionData is Models.Subscription subscription)
                 {
                     data["subscription_name"] = subscription.SubscriptionName;
-                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-dd HH:mm:ss");
+                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-dd");
                     data["price"] = subscription.Price;
                     data["site"] = subscription.Site;
                     data["account"] = subscription.Account;

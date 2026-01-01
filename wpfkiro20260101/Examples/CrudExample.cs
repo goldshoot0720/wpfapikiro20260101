@@ -48,7 +48,12 @@ namespace wpfkiro20260101.Examples
             var newFood = new Food
             {
                 FoodName = "有機蘋果",
+                Price = 120,
                 Shop = "有機農場直送",
+                ToDate = "2026-01-15",
+                Description = "來自台灣有機農場的新鮮蘋果",
+                Category = "水果",
+                StorageLocation = "冰箱",
                 Note = "新鮮有機蘋果",
                 Photo = "apple.jpg",
                 PhotoHash = "abc123"
@@ -89,7 +94,12 @@ namespace wpfkiro20260101.Examples
             var updatedFood = new Food
             {
                 FoodName = "有機蘋果 (更新版)",
+                Price = 150,
                 Shop = "有機農場直送",
+                ToDate = "2026-01-20",
+                Description = "來自台灣有機農場的新鮮蘋果 - 升級版",
+                Category = "水果",
+                StorageLocation = "冰箱",
                 Note = "新鮮有機蘋果 - 已升級包裝",
                 Photo = "apple_premium.jpg",
                 PhotoHash = "def456"
