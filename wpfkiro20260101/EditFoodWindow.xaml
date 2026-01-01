@@ -46,16 +46,35 @@
                     <DatePicker x:Name="ExpiryDatePicker" Height="35" Margin="0,0,0,15"
                               BorderBrush="#CCCCCC" BorderThickness="1"/>
 
-                    <!-- 照片路徑 -->
-                    <TextBlock Text="照片路徑" FontWeight="Bold" Margin="0,0,0,5"/>
-                    <TextBox x:Name="PhotoTextBox" Height="35" Padding="10" Margin="0,0,0,15"
-                           BorderBrush="#CCCCCC" BorderThickness="1"/>
-
-                    <!-- 備註 -->
-                    <TextBlock Text="備註" FontWeight="Bold" Margin="0,0,0,5"/>
-                    <TextBox x:Name="NotesTextBox" Height="80" Padding="10" Margin="0,0,0,15"
-                           BorderBrush="#CCCCCC" BorderThickness="1" TextWrapping="Wrap" 
-                           VerticalScrollBarVisibility="Auto"/>
+                    <!-- 照片 URL -->
+                    <TextBlock Text="照片 URL (網路圖片)" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="PhotoUrlTextBox" Grid.Column="0" Height="35" Padding="10" 
+                               BorderBrush="#CCCCCC" BorderThickness="1"
+                               TextChanged="PhotoUrl_TextChanged"
+                               ToolTip="輸入圖片的網路 URL，例如：https://example.com/image.jpg"/>
+                        <Button x:Name="PreviewButton" Grid.Column="1" Content="重新載入" Width="80" Height="35"
+                              Background="#3B82F6" Foreground="White" BorderThickness="0" 
+                              Margin="5,0,0,0" Click="PreviewImage_Click" IsEnabled="False"/>
+                    </Grid>
+                    
+                    <!-- 圖片預覽 -->
+                    <Border x:Name="ImagePreviewBorder" BorderBrush="#CCCCCC" BorderThickness="1" 
+                          Margin="0,0,0,15" Visibility="Collapsed" MaxHeight="200">
+                        <Grid>
+                            <Image x:Name="ImagePreview" Stretch="Uniform" MaxHeight="180"/>
+                            <TextBlock x:Name="LoadingText" Text="載入中..." HorizontalAlignment="Center" 
+                                     VerticalAlignment="Center" FontSize="14" Foreground="#666666" 
+                                     Visibility="Collapsed"/>
+                            <TextBlock x:Name="ErrorText" Text="無法載入圖片" HorizontalAlignment="Center" 
+                                     VerticalAlignment="Center" FontSize="14" Foreground="#EF4444" 
+                                     Visibility="Collapsed"/>
+                        </Grid>
+                    </Border>
                 </StackPanel>
             </ScrollViewer>
 

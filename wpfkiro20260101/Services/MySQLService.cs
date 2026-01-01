@@ -144,6 +144,7 @@ namespace wpfkiro20260101.Services
                 {
                     data["food_name"] = food.FoodName;
                     data["price"] = food.Price;
+                    data["quantity"] = food.Quantity;
                     data["photo"] = food.Photo;
                     data["photo_hash"] = food.PhotoHash;
                     data["shop"] = food.Shop;
@@ -205,6 +206,7 @@ namespace wpfkiro20260101.Services
                 {
                     data["food_name"] = food.FoodName;
                     data["price"] = food.Price;
+                    data["quantity"] = food.Quantity;
                     data["photo"] = food.Photo;
                     data["photo_hash"] = food.PhotoHash;
                     data["shop"] = food.Shop;

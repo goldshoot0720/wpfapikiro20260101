@@ -27,9 +27,10 @@
                            BorderBrush="#CCCCCC" BorderThickness="1"/>
 
                     <!-- 網站 -->
-                    <TextBlock Text="網站" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBlock Text="網站 URL" FontWeight="Bold" Margin="0,0,0,5"/>
                     <TextBox x:Name="WebsiteTextBox" Height="35" Padding="10" Margin="0,0,0,15"
-                           BorderBrush="#CCCCCC" BorderThickness="1"/>
+                           BorderBrush="#CCCCCC" BorderThickness="1"
+                           ToolTip="輸入網站 URL，例如：https://example.com 或 example.com"/>
 
                     <!-- 月費 -->
                     <TextBlock Text="月費 (NT$) *" FontWeight="Bold" Margin="0,0,0,5"/>

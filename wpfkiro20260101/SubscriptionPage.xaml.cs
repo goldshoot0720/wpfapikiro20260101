@@ -449,14 +449,66 @@ namespace wpfkiro20260101
 
             if (!string.IsNullOrEmpty(site))
             {
-                var siteText = new TextBlock
+                // 創建可點擊的網站連結
+                var sitePanel = new StackPanel
                 {
-                    Text = $"網站: {site}",
-                    FontSize = 12,
-                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6B7280")),
+                    Orientation = Orientation.Horizontal,
                     Margin = new Thickness(0, 2, 0, 0)
                 };
-                infoPanel.Children.Add(siteText);
+
+                var siteLabel = new TextBlock
+                {
+                    Text = "網站: ",
+                    FontSize = 12,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6B7280"))
+                };
+
+                var siteLink = new TextBlock
+                {
+                    Text = site,
+                    FontSize = 12,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3B82F6")),
+                    TextDecorations = TextDecorations.Underline,
+                    Cursor = Cursors.Hand,
+                    ToolTip = $"點擊開啟 {site}"
+                };
+
+                // 添加點擊事件
+                siteLink.MouseLeftButtonUp += (sender, e) =>
+                {
+                    try
+                    {
+                        var url = site;
+                        if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+                        {
+                            url = "https://" + url;
+                        }
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = url,
+                            UseShellExecute = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"無法開啟網站：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                };
+
+                // 添加滑鼠懸停效果
+                siteLink.MouseEnter += (sender, e) =>
+                {
+                    siteLink.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1D4ED8"));
+                };
+
+                siteLink.MouseLeave += (sender, e) =>
+                {
+                    siteLink.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3B82F6"));
+                };
+
+                sitePanel.Children.Add(siteLabel);
+                sitePanel.Children.Add(siteLink);
+                infoPanel.Children.Add(sitePanel);
             }
 
             var detailsPanel = new StackPanel

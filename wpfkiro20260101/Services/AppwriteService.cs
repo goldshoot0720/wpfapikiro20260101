@@ -255,20 +255,21 @@ namespace wpfkiro20260101.Services
                     collectionId: settings.FoodCollectionId
                 );
 
-                // 轉換為我們的資料格式 - 對照實際Appwrite欄位
+                // 轉換為我們的資料格式 - 根據 APPWRITE_MAPPING.md 使用正確的欄位名稱
                 var foods = documents.Documents.Select(doc => new
                 {
                     id = doc.Id,
-                    foodName = doc.Data.TryGetValue("food_name", out var foodName) ? foodName?.ToString() ?? "" : "",
+                    foodName = doc.Data.TryGetValue("name", out var name) ? name?.ToString() ?? "" : "",
                     price = doc.Data.TryGetValue("price", out var price) ? (int.TryParse(price?.ToString(), out var p) ? p : 0) : 0,
                     photo = doc.Data.TryGetValue("photo", out var photo) ? photo?.ToString() ?? "" : "",
-                    photoHash = doc.Data.TryGetValue("photo_hash", out var photoHash) ? photoHash?.ToString() ?? "" : "",
+                    photoHash = doc.Data.TryGetValue("photohash", out var photoHash) ? photoHash?.ToString() ?? "" : "",
                     shop = doc.Data.TryGetValue("shop", out var shop) ? shop?.ToString() ?? "" : "",
-                    toDate = doc.Data.TryGetValue("to_date", out var toDate) ? toDate?.ToString() ?? "" : "",
-                    description = doc.Data.TryGetValue("description", out var description) ? description?.ToString() ?? "" : "",
-                    category = doc.Data.TryGetValue("category", out var category) ? category?.ToString() ?? "" : "",
-                    storageLocation = doc.Data.TryGetValue("storage_location", out var storageLocation) ? storageLocation?.ToString() ?? "" : "",
-                    note = doc.Data.TryGetValue("note", out var note) ? note?.ToString() ?? "" : "",
+                    toDate = doc.Data.TryGetValue("todate", out var toDate) ? toDate?.ToString() ?? "" : "",
+                    // 以下字段在實際 Appwrite 表中不存在，設為空值
+                    description = "",
+                    category = "",
+                    storageLocation = "",
+                    note = "",
                     createdAt = doc.CreatedAt,
                     updatedAt = doc.UpdatedAt
                 }).ToArray<object>();
@@ -304,22 +305,17 @@ namespace wpfkiro20260101.Services
                 // 使用 Appwrite Databases 服務
                 var databases = new Appwrite.Services.Databases(_client);
                 
-                // 將 foodData 轉換為字典 - 對照實際Appwrite欄位
+                // 將 foodData 轉換為字典 - 根據 APPWRITE_MAPPING.md 使用正確的欄位名稱
                 var data = new Dictionary<string, object>();
                 
                 if (foodData is Models.Food food)
                 {
-                    data["food_name"] = food.FoodName;
-                    data["price"] = food.Price;
-                    data["quantity"] = food.Quantity;
-                    data["photo"] = food.Photo;
-                    data["photo_hash"] = food.PhotoHash;
-                    data["shop"] = food.Shop;
-                    data["to_date"] = food.ToDate;
-                    data["description"] = food.Description;
-                    data["category"] = food.Category;
-                    data["storage_location"] = food.StorageLocation;
-                    data["note"] = food.Note;
+                    data["name"] = food.FoodName;        // 實際欄位: "name"
+                    data["price"] = food.Price;          // 實際欄位: "price"
+                    data["photo"] = food.Photo;          // 實際欄位: "photo"
+                    data["photohash"] = food.PhotoHash;  // 實際欄位: "photohash"
+                    data["shop"] = food.Shop;            // 實際欄位: "shop"
+                    data["todate"] = food.ToDate;        // 實際欄位: "todate"
                 }
                 else
                 {
@@ -373,22 +369,17 @@ namespace wpfkiro20260101.Services
                 // 使用 Appwrite Databases 服務
                 var databases = new Appwrite.Services.Databases(_client);
                 
-                // 將 foodData 轉換為字典 - 對照實際Appwrite欄位
+                // 將 foodData 轉換為字典 - 根據 APPWRITE_MAPPING.md 使用正確的欄位名稱
                 var data = new Dictionary<string, object>();
                 
                 if (foodData is Models.Food food)
                 {
-                    data["food_name"] = food.FoodName;
-                    data["price"] = food.Price;
-                    data["quantity"] = food.Quantity;
-                    data["photo"] = food.Photo;
-                    data["photo_hash"] = food.PhotoHash;
-                    data["shop"] = food.Shop;
-                    data["to_date"] = food.ToDate;
-                    data["description"] = food.Description;
-                    data["category"] = food.Category;
-                    data["storage_location"] = food.StorageLocation;
-                    data["note"] = food.Note;
+                    data["name"] = food.FoodName;        // 實際欄位: "name"
+                    data["price"] = food.Price;          // 實際欄位: "price"
+                    data["photo"] = food.Photo;          // 實際欄位: "photo"
+                    data["photohash"] = food.PhotoHash;  // 實際欄位: "photohash"
+                    data["shop"] = food.Shop;            // 實際欄位: "shop"
+                    data["todate"] = food.ToDate;        // 實際欄位: "todate"
                 }
                 else
                 {

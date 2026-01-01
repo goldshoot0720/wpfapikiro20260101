@@ -358,15 +358,53 @@ namespace wpfkiro20260101
                 Margin = new Thickness(0, 0, 0, 15)
             };
 
-            var imageText = new TextBlock
+            // 如果有有效的圖片 URL，顯示網路圖片；否則顯示預設圖示
+            if (!string.IsNullOrEmpty(photo) && IsValidImageUrl(photo))
             {
-                Text = string.IsNullOrEmpty(photo) ? "🍎" : "📷",
-                FontSize = 48,
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981")),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            imageBorder.Child = imageText;
+                var image = new Image
+                {
+                    Stretch = Stretch.UniformToFill,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+
+                try
+                {
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri(photo);
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    image.Source = bitmap;
+                    imageBorder.Child = image;
+                }
+                catch
+                {
+                    // 如果載入失敗，顯示預設圖示
+                    var fallbackText = new TextBlock
+                    {
+                        Text = "❌",
+                        FontSize = 48,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF4444")),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+                    imageBorder.Child = fallbackText;
+                }
+            }
+            else
+            {
+                var imageText = new TextBlock
+                {
+                    Text = "🍎",
+                    FontSize = 48,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981")),
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                imageBorder.Child = imageText;
+            }
+            
             stackPanel.Children.Add(imageBorder);
 
             // 食品名稱
@@ -518,6 +556,46 @@ namespace wpfkiro20260101
         private void ShowInfoMessage(string message)
         {
             MessageBox.Show(message, "資訊", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private bool IsValidImageUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url)) return false;
+            
+            try
+            {
+                var uri = new Uri(url);
+                if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+                    return false;
+
+                var imageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+                var lowerUrl = url.ToLower();
+                
+                // 檢查常見的圖片副檔名
+                if (imageExtensions.Any(ext => lowerUrl.Contains(ext)))
+                    return true;
+                
+                // 檢查特殊的圖片服務
+                var imageServices = new[]
+                {
+                    "picsum.photos",
+                    "placeholder.com", 
+                    "unsplash.com",
+                    "httpbin.org/image",
+                    "gstatic.com/images", // Google 圖片
+                    "googleusercontent.com",
+                    "imgur.com",
+                    "flickr.com",
+                    "pixabay.com",
+                    "pexels.com"
+                };
+                
+                return imageServices.Any(service => lowerUrl.Contains(service));
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         // 重新載入資料的公開方法
