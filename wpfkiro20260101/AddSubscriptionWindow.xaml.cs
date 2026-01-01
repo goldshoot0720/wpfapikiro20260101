@@ -13,7 +13,7 @@ namespace wpfkiro20260101
             InitializeComponent();
             
             // 設定預設值
-            NextDatePicker.SelectedDate = DateTime.Now.AddDays(30);
+            NextPaymentDatePicker.SelectedDate = DateTime.Now.AddDays(30);
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
@@ -27,18 +27,26 @@ namespace wpfkiro20260101
             try
             {
                 // 驗證必填欄位
-                if (string.IsNullOrWhiteSpace(SubscriptionNameTextBox.Text))
+                if (string.IsNullOrWhiteSpace(ServiceNameTextBox.Text))
                 {
-                    MessageBox.Show("請輸入訂閱名稱", "驗證錯誤", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    SubscriptionNameTextBox.Focus();
+                    MessageBox.Show("請輸入服務名稱", "驗證錯誤", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    ServiceNameTextBox.Focus();
                     return;
                 }
 
-                // 驗證價格
-                if (!int.TryParse(PriceTextBox.Text, out int price) || price < 0)
+                // 驗證月費
+                if (!decimal.TryParse(MonthlyFeeTextBox.Text, out decimal monthlyFee) || monthlyFee < 0)
                 {
-                    MessageBox.Show("請輸入有效的價格（正整數）", "驗證錯誤", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    PriceTextBox.Focus();
+                    MessageBox.Show("請輸入有效的月費（正數）", "驗證錯誤", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MonthlyFeeTextBox.Focus();
+                    return;
+                }
+
+                // 驗證下次付款日期
+                if (!NextPaymentDatePicker.SelectedDate.HasValue)
+                {
+                    MessageBox.Show("請選擇下次付款日期", "驗證錯誤", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    NextPaymentDatePicker.Focus();
                     return;
                 }
 
@@ -46,14 +54,14 @@ namespace wpfkiro20260101
                 NewSubscription = new Subscription
                 {
                     Id = Guid.NewGuid().ToString(),
-                    SubscriptionName = SubscriptionNameTextBox.Text.Trim(),
-                    Site = SiteTextBox.Text.Trim(),
-                    Price = price,
-                    Account = AccountTextBox.Text.Trim(),
-                    NextDate = NextDatePicker.SelectedDate ?? DateTime.Now.AddDays(30),
-                    Note = NoteTextBox.Text.Trim(),
-                    StringToDate = (NextDatePicker.SelectedDate ?? DateTime.Now.AddDays(30)).ToString("yyyy-MM-dd"),
-                    DateTime = NextDatePicker.SelectedDate ?? DateTime.Now.AddDays(30),
+                    SubscriptionName = ServiceNameTextBox.Text.Trim(),
+                    Site = WebsiteTextBox.Text.Trim(),
+                    Price = (int)Math.Round(monthlyFee), // 轉換為整數以符合模型
+                    Account = "", // 暫時留空，因為表單中沒有此欄位
+                    NextDate = NextPaymentDatePicker.SelectedDate.Value,
+                    Note = NotesTextBox.Text.Trim(),
+                    StringToDate = NextPaymentDatePicker.SelectedDate.Value.ToString("yyyy-MM-dd"),
+                    DateTime = NextPaymentDatePicker.SelectedDate.Value,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };

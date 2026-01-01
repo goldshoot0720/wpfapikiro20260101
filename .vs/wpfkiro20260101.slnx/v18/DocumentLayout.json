@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\chbon\\source\\repos\\wpfkiro20260101\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{4AFF917F-421B-4CDE-8684-9EC32B8F0DB0}|wpfkiro20260101\\wpfkiro20260101.csproj|c:\\users\\chbon\\source\\repos\\wpfkiro20260101\\wpfkiro20260101\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{4AFF917F-421B-4CDE-8684-9EC32B8F0DB0}|wpfkiro20260101\\wpfkiro20260101.csproj|solutionrelative:wpfkiro20260101\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+      "AbsoluteMoniker": "D:0:0:{2B2BAFC0-92EC-4C36-37E8-956FAE29FDA4}|wpfkiro20260101\\wpfkiro20260101.csproj|c:\\users\\chbon\\source\\repos\\wpfkiro20260101\\wpfkiro20260101\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{2B2BAFC0-92EC-4C36-37E8-956FAE29FDA4}|wpfkiro20260101\\wpfkiro20260101.csproj|solutionrelative:wpfkiro20260101\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4AFF917F-421B-4CDE-8684-9EC32B8F0DB0}|wpfkiro20260101\\wpfkiro20260101.csproj|c:\\users\\chbon\\source\\repos\\wpfkiro20260101\\wpfkiro20260101\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4AFF917F-421B-4CDE-8684-9EC32B8F0DB0}|wpfkiro20260101\\wpfkiro20260101.csproj|solutionrelative:wpfkiro20260101\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2B2BAFC0-92EC-4C36-37E8-956FAE29FDA4}|wpfkiro20260101\\wpfkiro20260101.csproj|c:\\users\\chbon\\source\\repos\\wpfkiro20260101\\wpfkiro20260101\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2B2BAFC0-92EC-4C36-37E8-956FAE29FDA4}|wpfkiro20260101\\wpfkiro20260101.csproj|solutionrelative:wpfkiro20260101\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -42,8 +42,7 @@
               "RelativeToolTip": "wpfkiro20260101\\MainWindow.xaml.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-01T08:19:19.075Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-01T08:19:19.075Z"
             }
           ]
         }

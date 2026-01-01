@@ -1,108 +1,63 @@
 <Window x:Class="wpfkiro20260101.AddSubscriptionWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="添加訂閱" Height="500" Width="450"
+        Title="添加訂閱" Height="650" Width="450"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
     
-    <Window.Resources>
-        <LinearGradientBrush x:Key="WindowBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#6366F1" Offset="0"/>
-            <GradientStop Color="#8B5CF6" Offset="1"/>
-        </LinearGradientBrush>
-    </Window.Resources>
+    <Grid Background="White">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-    <Grid Background="{StaticResource WindowBackgroundBrush}">
-        <Border Background="White" CornerRadius="15" Margin="20" Padding="30">
-            <StackPanel>
-                <!-- 標題 -->
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,30">
-                    <Border Background="#EF4444" CornerRadius="8" Width="40" Height="40" Margin="0,0,15,0">
-                        <TextBlock Text="➕" FontSize="20" Foreground="White" 
-                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="添加新訂閱" FontSize="20" FontWeight="Bold" Foreground="#374151"/>
-                        <TextBlock Text="填寫訂閱服務的詳細資訊" FontSize="12" Foreground="#6B7280"/>
-                    </StackPanel>
-                </StackPanel>
+            <!-- 標題 -->
+            <TextBlock Grid.Row="0" Text="添加新訂閱" FontSize="24" FontWeight="Bold" 
+                     HorizontalAlignment="Center" Margin="0,20,0,30" Foreground="#333"/>
 
-                <!-- 表單 -->
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- 訂閱名稱 -->
-                    <StackPanel Grid.Row="0" Margin="0,0,0,15">
-                        <TextBlock Text="訂閱名稱 *" FontWeight="Bold" Foreground="#374151" Margin="0,0,0,5"/>
-                        <Border BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="6">
-                            <TextBox x:Name="SubscriptionNameTextBox" Padding="12" BorderThickness="0" 
-                                   Background="Transparent" FontSize="14"/>
-                        </Border>
-                    </StackPanel>
+            <!-- 表單內容 -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="20,0">
+                    <!-- 服務名稱 -->
+                    <TextBlock Text="服務名稱 *" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox x:Name="ServiceNameTextBox" Height="35" Padding="10" Margin="0,0,0,15"
+                           BorderBrush="#CCC" BorderThickness="1"/>
 
                     <!-- 網站 -->
-                    <StackPanel Grid.Row="1" Margin="0,0,0,15">
-                        <TextBlock Text="網站" FontWeight="Bold" Foreground="#374151" Margin="0,0,0,5"/>
-                        <Border BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="6">
-                            <TextBox x:Name="SiteTextBox" Padding="12" BorderThickness="0" 
-                                   Background="Transparent" FontSize="14"/>
-                        </Border>
-                    </StackPanel>
+                    <TextBlock Text="網站" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox x:Name="WebsiteTextBox" Height="35" Padding="10" Margin="0,0,0,15"
+                           BorderBrush="#CCC" BorderThickness="1"/>
 
-                    <!-- 價格 -->
-                    <StackPanel Grid.Row="2" Margin="0,0,0,15">
-                        <TextBlock Text="價格 (NT$)" FontWeight="Bold" Foreground="#374151" Margin="0,0,0,5"/>
-                        <Border BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="6">
-                            <TextBox x:Name="PriceTextBox" Padding="12" BorderThickness="0" 
-                                   Background="Transparent" FontSize="14"/>
-                        </Border>
-                    </StackPanel>
-
-                    <!-- 帳號 -->
-                    <StackPanel Grid.Row="3" Margin="0,0,0,15">
-                        <TextBlock Text="帳號" FontWeight="Bold" Foreground="#374151" Margin="0,0,0,5"/>
-                        <Border BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="6">
-                            <TextBox x:Name="AccountTextBox" Padding="12" BorderThickness="0" 
-                                   Background="Transparent" FontSize="14"/>
-                        </Border>
-                    </StackPanel>
+                    <!-- 月費 -->
+                    <TextBlock Text="月費 (NT$) *" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox x:Name="MonthlyFeeTextBox" Height="35" Padding="10" Margin="0,0,0,15"
+                           BorderBrush="#CCC" BorderThickness="1"/>
 
                     <!-- 下次付款日期 -->
-                    <StackPanel Grid.Row="4" Margin="0,0,0,15">
-                        <TextBlock Text="下次付款日期" FontWeight="Bold" Foreground="#374151" Margin="0,0,0,5"/>
-                        <DatePicker x:Name="NextDatePicker" Padding="12" BorderBrush="#D1D5DB" BorderThickness="1" 
-                                  FontSize="14"/>
-                    </StackPanel>
+                    <TextBlock Text="下次付款日期 *" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <DatePicker x:Name="NextPaymentDatePicker" Height="35" Margin="0,0,0,15"
+                              BorderBrush="#CCC" BorderThickness="1"/>
 
                     <!-- 備註 -->
-                    <StackPanel Grid.Row="5" Margin="0,0,0,20">
-                        <TextBlock Text="備註" FontWeight="Bold" Foreground="#374151" Margin="0,0,0,5"/>
-                        <Border BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="6">
-                            <TextBox x:Name="NoteTextBox" Padding="12" BorderThickness="0" 
-                                   Background="Transparent" FontSize="14" Height="60" TextWrapping="Wrap" 
-                                   VerticalScrollBarVisibility="Auto"/>
-                        </Border>
-                    </StackPanel>
+                    <TextBlock Text="備註" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox x:Name="NotesTextBox" Height="80" Padding="10" Margin="0,0,0,15"
+                           BorderBrush="#CCC" BorderThickness="1" TextWrapping="Wrap" 
+                           VerticalScrollBarVisibility="Auto"/>
+                </StackPanel>
+            </ScrollViewer>
 
-                    <!-- 按鈕 -->
-                    <StackPanel Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                        <Button Content="取消" Background="#6B7280" Foreground="White" BorderThickness="0" 
-                              Padding="20,10" Margin="0,0,10,0" Cursor="Hand" Click="Cancel_Click"/>
-                        <Button Content="添加訂閱" Background="#EF4444" Foreground="White" BorderThickness="0" 
-                              Padding="20,10" Cursor="Hand" Click="AddSubscription_Click"/>
-                    </StackPanel>
-                </Grid>
+            <!-- 按鈕區域 -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" 
+                      Margin="20,20,20,20">
+                <Button x:Name="CancelButton" Content="取消" Width="80" Height="35" 
+                      Background="#6B7280" Foreground="White" BorderThickness="0" 
+                      Margin="0,0,10,0" Click="Cancel_Click"/>
+                <Button x:Name="ConfirmButton" Content="確定新增" Width="100" Height="35" 
+                      Background="#10B981" Foreground="White" BorderThickness="0" 
+                      Click="AddSubscription_Click"/>
             </StackPanel>
-        </Border>
+        </Grid>
     </Grid>
 </Window>
