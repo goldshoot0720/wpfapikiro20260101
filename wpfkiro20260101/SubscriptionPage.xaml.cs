@@ -387,12 +387,12 @@ namespace wpfkiro20260101
             // Favicon 圖示容器
             var faviconContainer = new Border
             {
-                Width = 24,
-                Height = 24,
+                Width = 48,
+                Height = 48,
                 Margin = new Thickness(0, 0, 10, 0),
-                CornerRadius = new CornerRadius(4),
+                CornerRadius = new CornerRadius(6),
                 Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F3F4F6")),
-                VerticalAlignment = VerticalAlignment.Top
+                VerticalAlignment = VerticalAlignment.Center
             };
             Grid.SetColumn(faviconContainer, 0);
 
@@ -400,7 +400,7 @@ namespace wpfkiro20260101
             var defaultIcon = new TextBlock
             {
                 Text = "🌐",
-                FontSize = 14,
+                FontSize = 24,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6B7280"))
@@ -573,8 +573,8 @@ namespace wpfkiro20260101
                                 var bitmap = new BitmapImage();
                                 bitmap.BeginInit();
                                 bitmap.StreamSource = new MemoryStream(imageBytes);
-                                bitmap.DecodePixelWidth = 16; // 設置小尺寸以節省記憶體
-                                bitmap.DecodePixelHeight = 16;
+                                bitmap.DecodePixelWidth = 40; // 設置較大尺寸以獲得更好品質
+                                bitmap.DecodePixelHeight = 40;
                                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
                                 bitmap.EndInit();
                                 bitmap.Freeze(); // 使其可以跨線程使用
@@ -613,8 +613,8 @@ namespace wpfkiro20260101
                         var image = new Image
                         {
                             Source = favicon,
-                            Width = 16,
-                            Height = 16,
+                            Width = 40,
+                            Height = 40,
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center
                         };
