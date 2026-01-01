@@ -432,8 +432,10 @@ namespace wpfkiro20260101
                 BorderThickness = new Thickness(0),
                 Padding = new Thickness(12, 6, 12, 6),
                 Margin = new Thickness(10, 0, 0, 0),
-                Cursor = Cursors.Hand
+                Cursor = Cursors.Hand,
+                Tag = subscriptionItem  // 將訂閱項目資料存儲在 Tag 中
             };
+            editButton.Click += EditSubscription_Click;  // 添加點擊事件
             Grid.SetColumn(editButton, 2);
 
             var deleteButton = new Button
@@ -443,8 +445,10 @@ namespace wpfkiro20260101
                 Foreground = Brushes.White,
                 BorderThickness = new Thickness(0),
                 Padding = new Thickness(12, 6, 12, 6),
-                Cursor = Cursors.Hand
+                Cursor = Cursors.Hand,
+                Tag = subscriptionItem  // 將訂閱項目資料存儲在 Tag 中
             };
+            deleteButton.Click += DeleteSubscription_Click;  // 添加點擊事件
             Grid.SetColumn(deleteButton, 3);
 
             grid.Children.Add(categoryBorder);
@@ -509,17 +513,26 @@ namespace wpfkiro20260101
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine("開始添加訂閱流程...");
+                
                 // 打開添加訂閱對話框
                 var addWindow = new AddSubscriptionWindow
                 {
                     Owner = Window.GetWindow(this)
                 };
 
+                System.Diagnostics.Debug.WriteLine("顯示添加訂閱對話框...");
+                
                 if (addWindow.ShowDialog() == true && addWindow.NewSubscription != null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"用戶確認添加訂閱: {addWindow.NewSubscription.SubscriptionName}");
+                    
                     // 使用 CrudManager 創建訂閱
                     var crudManager = BackendServiceFactory.CreateCrudManager();
+                    System.Diagnostics.Debug.WriteLine("創建 CrudManager 成功");
+                    
                     var createResult = await crudManager.CreateSubscriptionAsync(addWindow.NewSubscription);
+                    System.Diagnostics.Debug.WriteLine($"CreateSubscriptionAsync 結果: Success={createResult.Success}, Error={createResult.ErrorMessage}");
 
                     if (createResult.Success)
                     {
@@ -531,6 +544,7 @@ namespace wpfkiro20260101
                         );
 
                         // 重新載入資料以顯示新添加的訂閱
+                        System.Diagnostics.Debug.WriteLine("重新載入訂閱資料...");
                         await LoadSubscriptionData();
                     }
                     else
@@ -538,10 +552,106 @@ namespace wpfkiro20260101
                         ShowErrorMessage($"添加訂閱失敗：{createResult.ErrorMessage}");
                     }
                 }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("用戶取消添加訂閱或資料為空");
+                }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"AddSubscription_Click 錯誤: {ex.Message}");
                 ShowErrorMessage($"添加訂閱時發生錯誤：{ex.Message}");
+            }
+        }
+
+        // 編輯訂閱按鈕點擊事件
+        private async void EditSubscription_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is Button button && button.Tag != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"編輯訂閱: {button.Tag}");
+                    
+                    // TODO: 實現編輯訂閱功能
+                    // 可以創建一個 EditSubscriptionWindow 或重用 AddSubscriptionWindow
+                    MessageBox.Show("編輯功能開發中...", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"編輯訂閱時發生錯誤：{ex.Message}");
+            }
+        }
+
+        // 刪除訂閱按鈕點擊事件
+        private async void DeleteSubscription_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is Button button && button.Tag != null)
+                {
+                    var subscriptionItem = button.Tag;
+                    System.Diagnostics.Debug.WriteLine($"刪除訂閱: {subscriptionItem}");
+                    
+                    // 獲取訂閱ID
+                    string subscriptionId = "";
+                    string subscriptionName = "未知訂閱";
+                    
+                    try
+                    {
+                        if (subscriptionItem.GetType().GetProperty("id")?.GetValue(subscriptionItem) is string id)
+                            subscriptionId = id;
+                        if (subscriptionItem.GetType().GetProperty("subscriptionName")?.GetValue(subscriptionItem) is string name)
+                            subscriptionName = name;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"解析訂閱資料時發生錯誤: {ex.Message}");
+                    }
+
+                    if (string.IsNullOrEmpty(subscriptionId))
+                    {
+                        ShowErrorMessage("無法獲取訂閱ID");
+                        return;
+                    }
+
+                    // 確認刪除
+                    var result = MessageBox.Show(
+                        $"確定要刪除訂閱「{subscriptionName}」嗎？\n此操作無法復原。",
+                        "確認刪除",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question
+                    );
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        // 使用 CrudManager 刪除訂閱
+                        var crudManager = BackendServiceFactory.CreateCrudManager();
+                        var deleteResult = await crudManager.DeleteSubscriptionAsync(subscriptionId);
+
+                        if (deleteResult.Success)
+                        {
+                            MessageBox.Show(
+                                $"訂閱「{subscriptionName}」已成功刪除！",
+                                "成功",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information
+                            );
+
+                            // 重新載入資料以更新顯示
+                            await LoadSubscriptionData();
+                        }
+                        else
+                        {
+                            ShowErrorMessage($"刪除訂閱失敗：{deleteResult.ErrorMessage}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"刪除訂閱時發生錯誤：{ex.Message}");
             }
         }
     }

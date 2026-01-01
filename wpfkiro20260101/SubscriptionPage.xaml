@@ -54,10 +54,12 @@
                         </StackPanel>
                     </StackPanel>
                     
-                    <Button Grid.Column="2" Content="添加訂閱" Background="#EF4444" Foreground="White" 
-                          BorderThickness="0" Padding="15,8" Cursor="Hand" Click="AddSubscription_Click"/>
-                    <Button x:Name="RefreshDataButton" Content="🔄 重新載入" Background="#6366F1" Foreground="White" 
-                          BorderThickness="0" Padding="15,8" Margin="10,0,0,0" Cursor="Hand" Click="RefreshData_Click"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Content="添加訂閱" Background="#EF4444" Foreground="White" 
+                              BorderThickness="0" Padding="15,8" Cursor="Hand" Click="AddSubscription_Click"/>
+                        <Button x:Name="RefreshDataButton" Content="🔄 重新載入" Background="#6366F1" Foreground="White" 
+                              BorderThickness="0" Padding="15,8" Margin="10,0,0,0" Cursor="Hand" Click="RefreshData_Click"/>
+                    </StackPanel>
                 </Grid>
                 
                 <!-- 資料來源狀態顯示 -->

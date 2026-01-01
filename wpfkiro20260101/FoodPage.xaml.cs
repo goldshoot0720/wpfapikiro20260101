@@ -399,8 +399,10 @@ namespace wpfkiro20260101
                 BorderThickness = new Thickness(0),
                 Padding = new Thickness(0, 8, 0, 8),
                 Margin = new Thickness(0, 0, 5, 0),
-                Cursor = Cursors.Hand
+                Cursor = Cursors.Hand,
+                Tag = foodItem  // 將食品項目資料存儲在 Tag 中
             };
+            editButton.Click += EditFood_Click;  // 添加點擊事件
             Grid.SetColumn(editButton, 0);
 
             var deleteButton = new Button
@@ -410,8 +412,10 @@ namespace wpfkiro20260101
                 Foreground = Brushes.White,
                 BorderThickness = new Thickness(0),
                 Padding = new Thickness(8),
-                Cursor = Cursors.Hand
+                Cursor = Cursors.Hand,
+                Tag = foodItem  // 將食品項目資料存儲在 Tag 中
             };
+            deleteButton.Click += DeleteFood_Click;  // 添加點擊事件
             Grid.SetColumn(deleteButton, 1);
 
             buttonGrid.Children.Add(editButton);
@@ -467,6 +471,97 @@ namespace wpfkiro20260101
                     RefreshDataButton.IsEnabled = true;
                     RefreshDataButton.Content = "🔄 重新載入";
                 }
+            }
+        }
+
+        // 編輯食品按鈕點擊事件
+        private async void EditFood_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is Button button && button.Tag != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"編輯食品: {button.Tag}");
+                    
+                    // TODO: 實現編輯食品功能
+                    // 可以創建一個 EditFoodWindow 或重用現有的添加食品功能
+                    MessageBox.Show("編輯功能開發中...", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"編輯食品時發生錯誤：{ex.Message}");
+            }
+        }
+
+        // 刪除食品按鈕點擊事件
+        private async void DeleteFood_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is Button button && button.Tag != null)
+                {
+                    var foodItem = button.Tag;
+                    System.Diagnostics.Debug.WriteLine($"刪除食品: {foodItem}");
+                    
+                    // 獲取食品ID
+                    string foodId = "";
+                    string foodName = "未知食品";
+                    
+                    try
+                    {
+                        if (foodItem.GetType().GetProperty("id")?.GetValue(foodItem) is string id)
+                            foodId = id;
+                        if (foodItem.GetType().GetProperty("foodName")?.GetValue(foodItem) is string name)
+                            foodName = name;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"解析食品資料時發生錯誤: {ex.Message}");
+                    }
+
+                    if (string.IsNullOrEmpty(foodId))
+                    {
+                        ShowErrorMessage("無法獲取食品ID");
+                        return;
+                    }
+
+                    // 確認刪除
+                    var result = MessageBox.Show(
+                        $"確定要刪除食品「{foodName}」嗎？\n此操作無法復原。",
+                        "確認刪除",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question
+                    );
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        // 使用 CrudManager 刪除食品
+                        var crudManager = BackendServiceFactory.CreateCrudManager();
+                        var deleteResult = await crudManager.DeleteFoodAsync(foodId);
+
+                        if (deleteResult.Success)
+                        {
+                            MessageBox.Show(
+                                $"食品「{foodName}」已成功刪除！",
+                                "成功",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information
+                            );
+
+                            // 重新載入資料以更新顯示
+                            await LoadFoodData();
+                        }
+                        else
+                        {
+                            ShowErrorMessage($"刪除食品失敗：{deleteResult.ErrorMessage}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"刪除食品時發生錯誤：{ex.Message}");
             }
         }
     }

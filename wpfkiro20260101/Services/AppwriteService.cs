@@ -469,19 +469,17 @@ namespace wpfkiro20260101.Services
                     collectionId: settings.SubscriptionCollectionId
                 );
 
-                // 轉換為我們的資料格式 - 對照實際Appwrite欄位
+                // 轉換為我們的資料格式 - 根據 APPWRITE_MAPPING.md 使用正確的欄位名稱
                 var subscriptions = documents.Documents.Select(doc => new
                 {
                     id = doc.Id,
-                    subscriptionName = doc.Data.TryGetValue("subscription_name", out var subscriptionName) ? subscriptionName?.ToString() ?? "" : "",
-                    nextDate = doc.Data.TryGetValue("next_date", out var nextDate) ? nextDate?.ToString() ?? "" : "",
-                    price = doc.Data.TryGetValue("price", out var price) && int.TryParse(price?.ToString(), out var p) ? p : 0,
-                    site = doc.Data.TryGetValue("site", out var site) ? site?.ToString() ?? "" : "",
-                    account = doc.Data.TryGetValue("account", out var account) ? account?.ToString() ?? "" : "",
-                    note = doc.Data.TryGetValue("note", out var note) ? note?.ToString() ?? "" : "",
-                    stringToDate = doc.Data.TryGetValue("string_to_date", out var stringToDate) ? stringToDate?.ToString() ?? "" : "",
-                    dateTime = doc.Data.TryGetValue("date_time", out var dateTime) ? dateTime?.ToString() ?? "" : "",
-                    foodId = doc.Data.TryGetValue("food_id", out var foodId) ? foodId?.ToString() : null,
+                    // 根據實際 Appwrite 資料庫欄位名稱映射
+                    subscriptionName = doc.Data.TryGetValue("name", out var name) ? name?.ToString() ?? "" : "",           // 實際欄位: "name"
+                    nextDate = doc.Data.TryGetValue("nextdate", out var nextdate) ? nextdate?.ToString() ?? "" : "",       // 實際欄位: "nextdate"
+                    price = doc.Data.TryGetValue("price", out var price) && int.TryParse(price?.ToString(), out var p) ? p : 0,  // 實際欄位: "price"
+                    site = doc.Data.TryGetValue("site", out var site) ? site?.ToString() ?? "" : "",                       // 實際欄位: "site"
+                    account = doc.Data.TryGetValue("account", out var account) ? account?.ToString() ?? "" : "",            // 實際欄位: "account"
+                    note = doc.Data.TryGetValue("note", out var note) ? note?.ToString() ?? "" : "",                       // 實際欄位: "note"
                     createdAt = doc.CreatedAt,
                     updatedAt = doc.UpdatedAt
                 }).ToArray<object>();
@@ -517,23 +515,18 @@ namespace wpfkiro20260101.Services
                 // 使用 Appwrite Databases 服務
                 var databases = new Appwrite.Services.Databases(_client);
                 
-                // 將 subscriptionData 轉換為字典 - 對照實際Appwrite欄位
+                // 將 subscriptionData 轉換為字典 - 根據 APPWRITE_MAPPING.md 使用正確的欄位名稱
                 var data = new Dictionary<string, object>();
                 
                 if (subscriptionData is Models.Subscription subscription)
                 {
-                    data["subscription_name"] = subscription.SubscriptionName;
-                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-                    data["price"] = subscription.Price;
-                    data["site"] = subscription.Site;
-                    data["account"] = subscription.Account;
-                    data["note"] = subscription.Note;
-                    data["string_to_date"] = subscription.StringToDate;
-                    data["date_time"] = subscription.DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-                    if (!string.IsNullOrEmpty(subscription.FoodId))
-                    {
-                        data["food_id"] = subscription.FoodId;
-                    }
+                    // 根據實際 Appwrite 資料庫欄位名稱映射
+                    data["name"] = subscription.SubscriptionName;      // 實際欄位: "name"
+                    data["nextdate"] = subscription.NextDate.ToString("yyyy-MM-dd");  // 實際欄位: "nextdate"
+                    data["price"] = subscription.Price;               // 實際欄位: "price"
+                    data["site"] = subscription.Site;                 // 實際欄位: "site"
+                    data["account"] = subscription.Account;           // 實際欄位: "account"
+                    data["note"] = subscription.Note;                 // 實際欄位: "note"
                 }
                 else
                 {
@@ -592,18 +585,13 @@ namespace wpfkiro20260101.Services
                 
                 if (subscriptionData is Models.Subscription subscription)
                 {
-                    data["subscription_name"] = subscription.SubscriptionName;
-                    data["next_date"] = subscription.NextDate.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-                    data["price"] = subscription.Price;
-                    data["site"] = subscription.Site;
-                    data["account"] = subscription.Account;
-                    data["note"] = subscription.Note;
-                    data["string_to_date"] = subscription.StringToDate;
-                    data["date_time"] = subscription.DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-                    if (!string.IsNullOrEmpty(subscription.FoodId))
-                    {
-                        data["food_id"] = subscription.FoodId;
-                    }
+                    // 根據實際 Appwrite 資料庫欄位名稱映射
+                    data["name"] = subscription.SubscriptionName;      // 實際欄位: "name"
+                    data["nextdate"] = subscription.NextDate.ToString("yyyy-MM-dd");  // 實際欄位: "nextdate"
+                    data["price"] = subscription.Price;               // 實際欄位: "price"
+                    data["site"] = subscription.Site;                 // 實際欄位: "site"
+                    data["account"] = subscription.Account;           // 實際欄位: "account"
+                    data["note"] = subscription.Note;                 // 實際欄位: "note"
                 }
                 else
                 {

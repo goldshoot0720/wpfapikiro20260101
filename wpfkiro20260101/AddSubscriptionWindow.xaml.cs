@@ -26,6 +26,8 @@ namespace wpfkiro20260101
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine("開始添加訂閱...");
+                
                 // 驗證必填欄位
                 if (string.IsNullOrWhiteSpace(ServiceNameTextBox.Text))
                 {
@@ -50,6 +52,8 @@ namespace wpfkiro20260101
                     return;
                 }
 
+                System.Diagnostics.Debug.WriteLine($"驗證通過 - 服務名稱: {ServiceNameTextBox.Text}, 月費: {monthlyFee}, 日期: {NextPaymentDatePicker.SelectedDate}");
+
                 // 創建新訂閱
                 NewSubscription = new Subscription
                 {
@@ -66,11 +70,14 @@ namespace wpfkiro20260101
                     UpdatedAt = DateTime.UtcNow
                 };
 
+                System.Diagnostics.Debug.WriteLine($"創建訂閱對象成功 - ID: {NewSubscription.Id}");
+
                 DialogResult = true;
                 Close();
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"AddSubscription_Click 錯誤: {ex.Message}");
                 MessageBox.Show($"創建訂閱時發生錯誤：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
