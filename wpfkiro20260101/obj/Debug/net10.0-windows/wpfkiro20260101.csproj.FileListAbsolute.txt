@@ -39,3 +39,9 @@ C:\Users\chbon\source\repos\wpfkiro20260101\wpfkiro20260101\obj\Debug\net10.0-wi
 C:\Users\chbon\source\repos\wpfkiro20260101\wpfkiro20260101\obj\Debug\net10.0-windows\wpfkiro20260101.pdb
 C:\Users\chbon\source\repos\wpfkiro20260101\wpfkiro20260101\obj\Debug\net10.0-windows\wpfkiro20260101.genruntimeconfig.cache
 C:\Users\chbon\source\repos\wpfkiro20260101\wpfkiro20260101\obj\Debug\net10.0-windows\ref\wpfkiro20260101.dll
+C:\Users\chbon\source\repos\wpfkiro20260101\wpfkiro20260101\obj\Debug\net10.0-windows\AddFoodWindow.baml
+C:\Users\chbon\source\repos\wpfkiro20260101\wpfkiro20260101\obj\Debug\net10.0-windows\EditFoodWindow.baml
+C:\Users\chbon\source\repos\wpfkiro20260101\wpfkiro20260101\obj\Debug\net10.0-windows\EditSubscriptionWindow.baml
+C:\Users\chbon\source\repos\wpfkiro20260101\wpfkiro20260101\obj\Debug\net10.0-windows\AddFoodWindow.g.cs
+C:\Users\chbon\source\repos\wpfkiro20260101\wpfkiro20260101\obj\Debug\net10.0-windows\EditFoodWindow.g.cs
+C:\Users\chbon\source\repos\wpfkiro20260101\wpfkiro20260101\obj\Debug\net10.0-windows\EditSubscriptionWindow.g.cs

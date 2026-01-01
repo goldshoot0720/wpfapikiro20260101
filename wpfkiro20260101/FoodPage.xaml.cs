@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using wpfkiro20260101.Services;
+using wpfkiro20260101.Models;
 
 namespace wpfkiro20260101
 {
@@ -298,20 +299,45 @@ namespace wpfkiro20260101
             var shop = "";
             var toDate = "";
             var photo = "";
+            var category = "";
+            var storageLocation = "";
+            var description = "";
 
             // 簡單的資料解析
             try
             {
                 if (foodItem.GetType().GetProperty("foodName")?.GetValue(foodItem) is string itemName)
                     name = itemName;
+                if (foodItem.GetType().GetProperty("FoodName")?.GetValue(foodItem) is string itemName2)
+                    name = itemName2;
                 if (foodItem.GetType().GetProperty("price")?.GetValue(foodItem) is int itemPrice)
                     price = $"NT$ {itemPrice}";
+                if (foodItem.GetType().GetProperty("Price")?.GetValue(foodItem) is int itemPrice2)
+                    price = $"NT$ {itemPrice2}";
                 if (foodItem.GetType().GetProperty("shop")?.GetValue(foodItem) is string itemShop)
                     shop = itemShop;
+                if (foodItem.GetType().GetProperty("Shop")?.GetValue(foodItem) is string itemShop2)
+                    shop = itemShop2;
                 if (foodItem.GetType().GetProperty("toDate")?.GetValue(foodItem) is string itemToDate)
                     toDate = itemToDate;
+                if (foodItem.GetType().GetProperty("ToDate")?.GetValue(foodItem) is string itemToDate2)
+                    toDate = itemToDate2;
                 if (foodItem.GetType().GetProperty("photo")?.GetValue(foodItem) is string itemPhoto)
                     photo = itemPhoto;
+                if (foodItem.GetType().GetProperty("Photo")?.GetValue(foodItem) is string itemPhoto2)
+                    photo = itemPhoto2;
+                if (foodItem.GetType().GetProperty("category")?.GetValue(foodItem) is string itemCategory)
+                    category = itemCategory;
+                if (foodItem.GetType().GetProperty("Category")?.GetValue(foodItem) is string itemCategory2)
+                    category = itemCategory2;
+                if (foodItem.GetType().GetProperty("storageLocation")?.GetValue(foodItem) is string itemStorage)
+                    storageLocation = itemStorage;
+                if (foodItem.GetType().GetProperty("StorageLocation")?.GetValue(foodItem) is string itemStorage2)
+                    storageLocation = itemStorage2;
+                if (foodItem.GetType().GetProperty("description")?.GetValue(foodItem) is string itemDesc)
+                    description = itemDesc;
+                if (foodItem.GetType().GetProperty("Description")?.GetValue(foodItem) is string itemDesc2)
+                    description = itemDesc2;
             }
             catch (Exception ex)
             {
@@ -370,6 +396,42 @@ namespace wpfkiro20260101
                     Margin = new Thickness(0, 0, 0, 5)
                 };
                 stackPanel.Children.Add(shopText);
+            }
+
+            // 分類和儲存位置
+            if (!string.IsNullOrEmpty(category) || !string.IsNullOrEmpty(storageLocation))
+            {
+                var categoryGrid = new Grid();
+                categoryGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                categoryGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                if (!string.IsNullOrEmpty(category))
+                {
+                    var categoryText = new TextBlock
+                    {
+                        Text = $"🏷️ {category}",
+                        FontSize = 11,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#8B5CF6")),
+                        Margin = new Thickness(0, 0, 5, 5)
+                    };
+                    Grid.SetColumn(categoryText, 0);
+                    categoryGrid.Children.Add(categoryText);
+                }
+
+                if (!string.IsNullOrEmpty(storageLocation))
+                {
+                    var storageText = new TextBlock
+                    {
+                        Text = $"📦 {storageLocation}",
+                        FontSize = 11,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#059669")),
+                        Margin = new Thickness(5, 0, 0, 5)
+                    };
+                    Grid.SetColumn(storageText, 1);
+                    categoryGrid.Children.Add(storageText);
+                }
+
+                stackPanel.Children.Add(categoryGrid);
             }
 
             // 到期日期
@@ -481,16 +543,94 @@ namespace wpfkiro20260101
             {
                 if (sender is Button button && button.Tag != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"編輯食品: {button.Tag}");
+                    var foodItem = button.Tag;
+                    System.Diagnostics.Debug.WriteLine($"編輯食品: {foodItem}");
                     
-                    // TODO: 實現編輯食品功能
-                    // 可以創建一個 EditFoodWindow 或重用現有的添加食品功能
-                    MessageBox.Show("編輯功能開發中...", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    // 解析食品資料
+                    var food = ParseFoodFromItem(foodItem);
+                    if (food == null)
+                    {
+                        ShowErrorMessage("無法解析食品資料");
+                        return;
+                    }
+
+                    // 打開編輯食品對話框
+                    var editWindow = new EditFoodWindow(food)
+                    {
+                        Owner = Window.GetWindow(this)
+                    };
+
+                    System.Diagnostics.Debug.WriteLine("顯示編輯食品對話框...");
+                    
+                    if (editWindow.ShowDialog() == true && editWindow.UpdatedFood != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"用戶確認編輯食品: {editWindow.UpdatedFood.FoodName}");
+                        
+                        // 使用 CrudManager 更新食品
+                        var crudManager = BackendServiceFactory.CreateCrudManager();
+                        var updateResult = await crudManager.UpdateFoodAsync(food.Id, editWindow.UpdatedFood);
+
+                        if (updateResult.Success)
+                        {
+                            MessageBox.Show(
+                                $"食品「{editWindow.UpdatedFood.FoodName}」已成功更新！",
+                                "成功",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information
+                            );
+
+                            // 重新載入資料以顯示更新後的食品
+                            await LoadFoodData();
+                        }
+                        else
+                        {
+                            ShowErrorMessage($"更新食品失敗：{updateResult.ErrorMessage}");
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"編輯食品時發生錯誤：{ex.Message}");
+            }
+        }
+
+        private Food? ParseFoodFromItem(object foodItem)
+        {
+            try
+            {
+                var food = new Food();
+                
+                if (foodItem.GetType().GetProperty("id")?.GetValue(foodItem) is string id)
+                    food.Id = id;
+                if (foodItem.GetType().GetProperty("foodName")?.GetValue(foodItem) is string name)
+                    food.FoodName = name;
+                if (foodItem.GetType().GetProperty("shop")?.GetValue(foodItem) is string shop)
+                    food.Shop = shop;
+                if (foodItem.GetType().GetProperty("price")?.GetValue(foodItem) is int price)
+                    food.Price = price;
+                if (foodItem.GetType().GetProperty("photo")?.GetValue(foodItem) is string photo)
+                    food.Photo = photo;
+                if (foodItem.GetType().GetProperty("photoHash")?.GetValue(foodItem) is string photoHash)
+                    food.PhotoHash = photoHash;
+                if (foodItem.GetType().GetProperty("note")?.GetValue(foodItem) is string note)
+                    food.Note = note;
+                
+                // 處理到期日期
+                if (foodItem.GetType().GetProperty("toDate")?.GetValue(foodItem) is string toDateStr)
+                {
+                    food.ToDate = toDateStr;
+                }
+
+                food.CreatedAt = DateTime.UtcNow;
+                food.UpdatedAt = DateTime.UtcNow;
+
+                return food;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"解析食品資料錯誤: {ex.Message}");
+                return null;
             }
         }
 
@@ -562,6 +702,62 @@ namespace wpfkiro20260101
             catch (Exception ex)
             {
                 ShowErrorMessage($"刪除食品時發生錯誤：{ex.Message}");
+            }
+        }
+
+        // 添加食品按鈕點擊事件
+        private async void AddFood_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("開始添加食品流程...");
+                
+                // 打開添加食品對話框
+                var addWindow = new AddFoodWindow
+                {
+                    Owner = Window.GetWindow(this)
+                };
+
+                System.Diagnostics.Debug.WriteLine("顯示添加食品對話框...");
+                
+                if (addWindow.ShowDialog() == true && addWindow.NewFood != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"用戶確認添加食品: {addWindow.NewFood.FoodName}");
+                    
+                    // 使用 CrudManager 創建食品
+                    var crudManager = BackendServiceFactory.CreateCrudManager();
+                    System.Diagnostics.Debug.WriteLine("創建 CrudManager 成功");
+                    
+                    var createResult = await crudManager.CreateFoodAsync(addWindow.NewFood);
+                    System.Diagnostics.Debug.WriteLine($"CreateFoodAsync 結果: Success={createResult.Success}, Error={createResult.ErrorMessage}");
+
+                    if (createResult.Success)
+                    {
+                        MessageBox.Show(
+                            $"食品「{addWindow.NewFood.FoodName}」已成功添加！",
+                            "成功",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
+
+                        // 重新載入資料以顯示新添加的食品
+                        System.Diagnostics.Debug.WriteLine("重新載入食品資料...");
+                        await LoadFoodData();
+                    }
+                    else
+                    {
+                        ShowErrorMessage($"添加食品失敗：{createResult.ErrorMessage}");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("用戶取消添加食品或資料為空");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AddFood_Click 錯誤: {ex.Message}");
+                ShowErrorMessage($"添加食品時發生錯誤：{ex.Message}");
             }
         }
     }

@@ -12,7 +12,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Net.Http;
+using System.IO;
 using wpfkiro20260101.Services;
+using wpfkiro20260101.Models;
 
 namespace wpfkiro20260101
 {
@@ -22,6 +25,15 @@ namespace wpfkiro20260101
     public partial class SubscriptionPage : Page
     {
         private IBackendService? _currentBackendService;
+        private static readonly HttpClient _httpClient = new HttpClient();
+
+        static SubscriptionPage()
+        {
+            // 設置 HttpClient 的 User-Agent 以避免被某些網站阻擋
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", 
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+            _httpClient.Timeout = TimeSpan.FromSeconds(10);
+        }
 
         public SubscriptionPage()
         {
@@ -318,10 +330,11 @@ namespace wpfkiro20260101
             };
 
             var grid = new Grid();
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // Favicon
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // Category
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // Info
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // Edit button
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // Delete button
 
             // 解析訂閱項目資料
             var itemData = subscriptionItem.ToString();
@@ -334,20 +347,70 @@ namespace wpfkiro20260101
             // 簡單的資料解析（實際應用中應該使用更好的方法）
             try
             {
+                // 嘗試解析不同的屬性名稱
                 if (subscriptionItem.GetType().GetProperty("name")?.GetValue(subscriptionItem) is string itemName)
                     name = itemName;
+                else if (subscriptionItem.GetType().GetProperty("SubscriptionName")?.GetValue(subscriptionItem) is string subName)
+                    name = subName;
+                
                 if (subscriptionItem.GetType().GetProperty("site")?.GetValue(subscriptionItem) is string itemSite)
                     site = itemSite;
+                else if (subscriptionItem.GetType().GetProperty("website")?.GetValue(subscriptionItem) is string itemWebsite)
+                    site = itemWebsite;
+                else if (subscriptionItem.GetType().GetProperty("Site")?.GetValue(subscriptionItem) is string itemSiteCapital)
+                    site = itemSiteCapital;
+                
                 if (subscriptionItem.GetType().GetProperty("price")?.GetValue(subscriptionItem) is int itemPrice)
                     price = $"NT$ {itemPrice}";
+                else if (subscriptionItem.GetType().GetProperty("price")?.GetValue(subscriptionItem) is double itemPriceDouble)
+                    price = $"${itemPriceDouble:F2}";
+                else if (subscriptionItem.GetType().GetProperty("Price")?.GetValue(subscriptionItem) is int itemPriceCapital)
+                    price = $"NT$ {itemPriceCapital}";
+                
                 if (subscriptionItem.GetType().GetProperty("nextDate")?.GetValue(subscriptionItem) is string itemNextDate)
                     nextDate = itemNextDate;
+                else if (subscriptionItem.GetType().GetProperty("nextPayment")?.GetValue(subscriptionItem) is DateTime itemNextPayment)
+                    nextDate = itemNextPayment.ToString("yyyy-MM-dd");
+                else if (subscriptionItem.GetType().GetProperty("NextDate")?.GetValue(subscriptionItem) is DateTime itemNextDateCapital)
+                    nextDate = itemNextDateCapital.ToString("yyyy-MM-dd");
+                
                 if (subscriptionItem.GetType().GetProperty("note")?.GetValue(subscriptionItem) is string itemNote)
                     note = itemNote;
+                else if (subscriptionItem.GetType().GetProperty("Note")?.GetValue(subscriptionItem) is string itemNoteCapital)
+                    note = itemNoteCapital;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"解析訂閱資料時發生錯誤: {ex.Message}");
+            }
+
+            // Favicon 圖示容器
+            var faviconContainer = new Border
+            {
+                Width = 24,
+                Height = 24,
+                Margin = new Thickness(0, 0, 10, 0),
+                CornerRadius = new CornerRadius(4),
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F3F4F6")),
+                VerticalAlignment = VerticalAlignment.Top
+            };
+            Grid.SetColumn(faviconContainer, 0);
+
+            // 預設圖示（當沒有 favicon 時顯示）
+            var defaultIcon = new TextBlock
+            {
+                Text = "🌐",
+                FontSize = 14,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6B7280"))
+            };
+            faviconContainer.Child = defaultIcon;
+
+            // 異步載入 favicon
+            if (!string.IsNullOrEmpty(site))
+            {
+                _ = LoadFaviconForCard(faviconContainer, site);
             }
 
             // 服務類型標籤
@@ -358,7 +421,7 @@ namespace wpfkiro20260101
                 Padding = new Thickness(8, 4, 8, 4),
                 Margin = new Thickness(0, 0, 15, 0)
             };
-            Grid.SetColumn(categoryBorder, 0);
+            Grid.SetColumn(categoryBorder, 1);
 
             var categoryText = new TextBlock
             {
@@ -371,7 +434,7 @@ namespace wpfkiro20260101
 
             // 訂閱資訊
             var infoPanel = new StackPanel();
-            Grid.SetColumn(infoPanel, 1);
+            Grid.SetColumn(infoPanel, 2);
 
             var nameText = new TextBlock
             {
@@ -436,7 +499,7 @@ namespace wpfkiro20260101
                 Tag = subscriptionItem  // 將訂閱項目資料存儲在 Tag 中
             };
             editButton.Click += EditSubscription_Click;  // 添加點擊事件
-            Grid.SetColumn(editButton, 2);
+            Grid.SetColumn(editButton, 3);
 
             var deleteButton = new Button
             {
@@ -449,8 +512,9 @@ namespace wpfkiro20260101
                 Tag = subscriptionItem  // 將訂閱項目資料存儲在 Tag 中
             };
             deleteButton.Click += DeleteSubscription_Click;  // 添加點擊事件
-            Grid.SetColumn(deleteButton, 3);
+            Grid.SetColumn(deleteButton, 4);
 
+            grid.Children.Add(faviconContainer);
             grid.Children.Add(categoryBorder);
             grid.Children.Add(infoPanel);
             grid.Children.Add(editButton);
@@ -468,6 +532,101 @@ namespace wpfkiro20260101
         private void ShowInfoMessage(string message)
         {
             MessageBox.Show(message, "資訊", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        // 獲取網站 favicon 的方法
+        private async Task<BitmapImage?> GetFaviconAsync(string websiteUrl)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(websiteUrl))
+                    return null;
+
+                // 確保 URL 格式正確
+                if (!websiteUrl.StartsWith("http://") && !websiteUrl.StartsWith("https://"))
+                {
+                    websiteUrl = "https://" + websiteUrl;
+                }
+
+                var uri = new Uri(websiteUrl);
+                var baseUrl = $"{uri.Scheme}://{uri.Host}";
+                
+                // 嘗試多個常見的 favicon 路徑
+                var faviconUrls = new[]
+                {
+                    $"{baseUrl}/favicon.ico",
+                    $"{baseUrl}/favicon.png",
+                    $"{baseUrl}/apple-touch-icon.png",
+                    $"{baseUrl}/apple-touch-icon-precomposed.png"
+                };
+
+                foreach (var faviconUrl in faviconUrls)
+                {
+                    try
+                    {
+                        var response = await _httpClient.GetAsync(faviconUrl);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var imageBytes = await response.Content.ReadAsByteArrayAsync();
+                            if (imageBytes.Length > 0)
+                            {
+                                var bitmap = new BitmapImage();
+                                bitmap.BeginInit();
+                                bitmap.StreamSource = new MemoryStream(imageBytes);
+                                bitmap.DecodePixelWidth = 16; // 設置小尺寸以節省記憶體
+                                bitmap.DecodePixelHeight = 16;
+                                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                bitmap.EndInit();
+                                bitmap.Freeze(); // 使其可以跨線程使用
+                                
+                                System.Diagnostics.Debug.WriteLine($"成功載入 favicon: {faviconUrl}");
+                                return bitmap;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"載入 favicon 失敗 ({faviconUrl}): {ex.Message}");
+                        continue;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"獲取 favicon 時發生錯誤: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        // 異步載入 favicon 並更新 UI
+        private async Task LoadFaviconForCard(Border faviconContainer, string websiteUrl)
+        {
+            try
+            {
+                var favicon = await GetFaviconAsync(websiteUrl);
+                if (favicon != null)
+                {
+                    // 在 UI 線程上更新圖像
+                    Dispatcher.Invoke(() =>
+                    {
+                        var image = new Image
+                        {
+                            Source = favicon,
+                            Width = 16,
+                            Height = 16,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Center
+                        };
+                        faviconContainer.Child = image;
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"載入 favicon 時發生錯誤: {ex.Message}");
+                // 保持預設圖示
+            }
         }
 
         // 重新載入資料的公開方法
@@ -571,16 +730,97 @@ namespace wpfkiro20260101
             {
                 if (sender is Button button && button.Tag != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"編輯訂閱: {button.Tag}");
+                    var subscriptionItem = button.Tag;
+                    System.Diagnostics.Debug.WriteLine($"編輯訂閱: {subscriptionItem}");
                     
-                    // TODO: 實現編輯訂閱功能
-                    // 可以創建一個 EditSubscriptionWindow 或重用 AddSubscriptionWindow
-                    MessageBox.Show("編輯功能開發中...", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    // 解析訂閱資料
+                    var subscription = ParseSubscriptionFromItem(subscriptionItem);
+                    if (subscription == null)
+                    {
+                        ShowErrorMessage("無法解析訂閱資料");
+                        return;
+                    }
+
+                    // 打開編輯訂閱對話框
+                    var editWindow = new EditSubscriptionWindow(subscription)
+                    {
+                        Owner = Window.GetWindow(this)
+                    };
+
+                    System.Diagnostics.Debug.WriteLine("顯示編輯訂閱對話框...");
+                    
+                    if (editWindow.ShowDialog() == true && editWindow.UpdatedSubscription != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"用戶確認編輯訂閱: {editWindow.UpdatedSubscription.SubscriptionName}");
+                        
+                        // 使用 CrudManager 更新訂閱
+                        var crudManager = BackendServiceFactory.CreateCrudManager();
+                        var updateResult = await crudManager.UpdateSubscriptionAsync(subscription.Id, editWindow.UpdatedSubscription);
+
+                        if (updateResult.Success)
+                        {
+                            MessageBox.Show(
+                                $"訂閱「{editWindow.UpdatedSubscription.SubscriptionName}」已成功更新！",
+                                "成功",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information
+                            );
+
+                            // 重新載入資料以顯示更新後的訂閱
+                            await LoadSubscriptionData();
+                        }
+                        else
+                        {
+                            ShowErrorMessage($"更新訂閱失敗：{updateResult.ErrorMessage}");
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"編輯訂閱時發生錯誤：{ex.Message}");
+            }
+        }
+
+        private Subscription? ParseSubscriptionFromItem(object subscriptionItem)
+        {
+            try
+            {
+                var subscription = new Subscription();
+                
+                if (subscriptionItem.GetType().GetProperty("id")?.GetValue(subscriptionItem) is string id)
+                    subscription.Id = id;
+                if (subscriptionItem.GetType().GetProperty("subscriptionName")?.GetValue(subscriptionItem) is string name)
+                    subscription.SubscriptionName = name;
+                if (subscriptionItem.GetType().GetProperty("site")?.GetValue(subscriptionItem) is string site)
+                    subscription.Site = site;
+                if (subscriptionItem.GetType().GetProperty("price")?.GetValue(subscriptionItem) is int price)
+                    subscription.Price = price;
+                if (subscriptionItem.GetType().GetProperty("account")?.GetValue(subscriptionItem) is string account)
+                    subscription.Account = account;
+                if (subscriptionItem.GetType().GetProperty("note")?.GetValue(subscriptionItem) is string note)
+                    subscription.Note = note;
+                
+                // 處理日期
+                if (subscriptionItem.GetType().GetProperty("nextDate")?.GetValue(subscriptionItem) is string nextDateStr)
+                {
+                    if (DateTime.TryParse(nextDateStr, out DateTime nextDate))
+                    {
+                        subscription.NextDate = nextDate;
+                        subscription.StringToDate = nextDate.ToString("yyyy-MM-dd");
+                        subscription.DateTime = nextDate;
+                    }
+                }
+
+                subscription.CreatedAt = DateTime.UtcNow;
+                subscription.UpdatedAt = DateTime.UtcNow;
+
+                return subscription;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"解析訂閱資料錯誤: {ex.Message}");
+                return null;
             }
         }
 
