@@ -304,8 +304,11 @@ namespace wpfkiro20260101
                 }
                 else
                 {
+                    // 按日期排序 - 由近到遠（最新的在前面）
+                    var sortedData = SortSubscriptionsByDate(subscriptionData);
+                    
                     // 動態創建訂閱項目
-                    foreach (var item in subscriptionData)
+                    foreach (var item in sortedData)
                     {
                         var subscriptionCard = CreateSubscriptionCard(item);
                         SubscriptionItemsContainer.Children.Add(subscriptionCard);
@@ -318,6 +321,39 @@ namespace wpfkiro20260101
             foreach (var item in subscriptionData)
             {
                 System.Diagnostics.Debug.WriteLine($"訂閱項目: {item}");
+            }
+        }
+
+        private object[] SortSubscriptionsByDate(object[] subscriptionData)
+        {
+            try
+            {
+                return subscriptionData.OrderByDescending(item =>
+                {
+                    try
+                    {
+                        // 嘗試獲取 nextDate 或相關的日期欄位
+                        var nextDate = GetPropertyValue(item, "nextdate", "nextDate", "NextDate") ?? "";
+                        
+                        if (DateTime.TryParse(nextDate, out DateTime parsedDate))
+                        {
+                            return parsedDate;
+                        }
+                        
+                        // 如果無法解析日期，返回最小值（會排在最後）
+                        return DateTime.MinValue;
+                    }
+                    catch
+                    {
+                        return DateTime.MinValue;
+                    }
+                }).ToArray();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"排序訂閱資料時發生錯誤：{ex.Message}");
+                // 如果排序失敗，返回原始資料
+                return subscriptionData;
             }
         }
 
@@ -960,6 +996,32 @@ namespace wpfkiro20260101
             {
                 ShowErrorMessage($"刪除訂閱時發生錯誤：{ex.Message}");
             }
+        }
+
+        private string GetPropertyValue(object obj, params string[] propertyNames)
+        {
+            if (obj == null) return null;
+
+            var objType = obj.GetType();
+            
+            foreach (var propertyName in propertyNames)
+            {
+                try
+                {
+                    var property = objType.GetProperty(propertyName);
+                    if (property != null)
+                    {
+                        var value = property.GetValue(obj);
+                        return value?.ToString();
+                    }
+                }
+                catch
+                {
+                    // 繼續嘗試下一個屬性名稱
+                }
+            }
+            
+            return null;
         }
     }
 }

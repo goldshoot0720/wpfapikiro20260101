@@ -530,7 +530,7 @@ namespace wpfkiro20260101.Services
                 {
                     // 根據實際 Appwrite 資料庫欄位名稱映射
                     data["name"] = subscription.SubscriptionName;      // 實際欄位: "name"
-                    data["nextdate"] = subscription.NextDate.ToString("yyyy-MM-dd");  // 實際欄位: "nextdate"
+                    data["nextdate"] = subscription.NextDate.ToUniversalTime();  // 實際欄位: "nextdate" - 轉換為 UTC 時間
                     data["price"] = subscription.Price;               // 實際欄位: "price"
                     data["site"] = subscription.Site;                 // 實際欄位: "site"
                     data["account"] = subscription.Account;           // 實際欄位: "account"
@@ -595,7 +595,7 @@ namespace wpfkiro20260101.Services
                 {
                     // 根據實際 Appwrite 資料庫欄位名稱映射
                     data["name"] = subscription.SubscriptionName;      // 實際欄位: "name"
-                    data["nextdate"] = subscription.NextDate.ToString("yyyy-MM-dd");  // 實際欄位: "nextdate"
+                    data["nextdate"] = subscription.NextDate.ToUniversalTime();  // 實際欄位: "nextdate" - 轉換為 UTC 時間
                     data["price"] = subscription.Price;               // 實際欄位: "price"
                     data["site"] = subscription.Site;                 // 實際欄位: "site"
                     data["account"] = subscription.Account;           // 實際欄位: "account"

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -563,6 +564,229 @@ namespace wpfkiro20260101
                    projectId == AppSettings.Defaults.Contentful.ProjectId ||
                    projectId == AppSettings.Defaults.Back4App.ProjectId ||
                    projectId == AppSettings.Defaults.MySQL.ProjectId;
+        }
+
+        private async void DownloadFoodCsv_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DownloadFoodCsvButton.IsEnabled = false;
+                DownloadFoodCsvButton.Content = "下載中...";
+
+                var service = BackendServiceFactory.CreateCurrentService();
+                var result = await service.GetFoodsAsync();
+
+                if (result.Success && result.Data != null)
+                {
+                    var serviceName = service.ServiceName.ToLower();
+                    var fileName = $"{serviceName}food.csv";
+                    
+                    var csvContent = GenerateFoodCsv(result.Data);
+                    await SaveCsvFile(csvContent, fileName);
+                    
+                    ShowStatusMessage($"成功下載 {fileName}！", Brushes.Green);
+                }
+                else
+                {
+                    ShowStatusMessage($"下載失敗：{result.ErrorMessage}", Brushes.Red);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"下載食品資料時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                DownloadFoodCsvButton.IsEnabled = true;
+                DownloadFoodCsvButton.Content = "📥 下載 food.csv";
+            }
+        }
+
+        private async void DownloadSubscriptionCsv_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DownloadSubscriptionCsvButton.IsEnabled = false;
+                DownloadSubscriptionCsvButton.Content = "下載中...";
+
+                var service = BackendServiceFactory.CreateCurrentService();
+                var result = await service.GetSubscriptionsAsync();
+
+                if (result.Success && result.Data != null)
+                {
+                    var serviceName = service.ServiceName.ToLower();
+                    var fileName = $"{serviceName}subscription.csv";
+                    
+                    var csvContent = GenerateSubscriptionCsv(result.Data);
+                    await SaveCsvFile(csvContent, fileName);
+                    
+                    ShowStatusMessage($"成功下載 {fileName}！", Brushes.Green);
+                }
+                else
+                {
+                    ShowStatusMessage($"下載失敗：{result.ErrorMessage}", Brushes.Red);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"下載訂閱資料時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                DownloadSubscriptionCsvButton.IsEnabled = true;
+                DownloadSubscriptionCsvButton.Content = "📥 下載 subscription.csv";
+            }
+        }
+
+        private string GenerateFoodCsv(object[] foods)
+        {
+            var csv = new System.Text.StringBuilder();
+            
+            // CSV 標題行 - 根據 Appwrite 實際欄位結構
+            csv.AppendLine("$id,name,price,photo,shop,todate,photohash,$createdAt,$updatedAt");
+
+            foreach (var item in foods)
+            {
+                try
+                {
+                    // 根據 Appwrite 的實際欄位名稱獲取資料
+                    var id = GetPropertyValue(item, "$id", "id", "Id") ?? "";
+                    var name = GetPropertyValue(item, "name", "foodName", "FoodName") ?? "";
+                    var price = GetPropertyValue(item, "price", "Price") ?? "0";
+                    var photo = GetPropertyValue(item, "photo", "Photo") ?? "";
+                    var shop = GetPropertyValue(item, "shop", "Shop") ?? "";
+                    var todateRaw = GetPropertyValue(item, "todate", "toDate", "ToDate") ?? "";
+                    var photohash = GetPropertyValue(item, "photohash", "photoHash", "PhotoHash") ?? "";
+                    var createdAt = GetPropertyValue(item, "$createdAt", "createdAt", "CreatedAt") ?? "";
+                    var updatedAt = GetPropertyValue(item, "$updatedAt", "updatedAt", "UpdatedAt") ?? "";
+
+                    // 處理日期格式 - 確保使用英文格式
+                    var todate = FormatDateForCsv(todateRaw);
+                    var createdAtFormatted = FormatDateForCsv(createdAt);
+                    var updatedAtFormatted = FormatDateForCsv(updatedAt);
+
+                    // 處理包含逗號的欄位，用雙引號包圍
+                    csv.AppendLine($"\"{EscapeCsvField(id)}\",\"{EscapeCsvField(name)}\",\"{price}\",\"{EscapeCsvField(photo)}\",\"{EscapeCsvField(shop)}\",\"{todate}\",\"{EscapeCsvField(photohash)}\",\"{createdAtFormatted}\",\"{updatedAtFormatted}\"");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"處理食品項目時發生錯誤：{ex.Message}");
+                }
+            }
+
+            return csv.ToString();
+        }
+
+        private string GenerateSubscriptionCsv(object[] subscriptions)
+        {
+            var csv = new System.Text.StringBuilder();
+            
+            // CSV 標題行 - 根據 Appwrite 實際欄位結構
+            csv.AppendLine("$id,name,nextdate,price,site,note,account,$createdAt,$updatedAt");
+
+            foreach (var item in subscriptions)
+            {
+                try
+                {
+                    // 根據 Appwrite 的實際欄位名稱獲取資料
+                    var id = GetPropertyValue(item, "$id", "id", "Id") ?? "";
+                    var name = GetPropertyValue(item, "name", "subscriptionName", "SubscriptionName") ?? "";
+                    var nextdateRaw = GetPropertyValue(item, "nextdate", "nextDate", "NextDate") ?? "";
+                    var price = GetPropertyValue(item, "price", "Price") ?? "0";
+                    var site = GetPropertyValue(item, "site", "Site") ?? "";
+                    var note = GetPropertyValue(item, "note", "Note") ?? "";
+                    var account = GetPropertyValue(item, "account", "Account") ?? "";
+                    var createdAt = GetPropertyValue(item, "$createdAt", "createdAt", "CreatedAt") ?? "";
+                    var updatedAt = GetPropertyValue(item, "$updatedAt", "updatedAt", "UpdatedAt") ?? "";
+
+                    // 處理日期格式 - 確保使用英文格式
+                    var nextdate = FormatDateForCsv(nextdateRaw);
+                    var createdAtFormatted = FormatDateForCsv(createdAt);
+                    var updatedAtFormatted = FormatDateForCsv(updatedAt);
+
+                    // 處理包含逗號的欄位，用雙引號包圍
+                    csv.AppendLine($"\"{EscapeCsvField(id)}\",\"{EscapeCsvField(name)}\",\"{nextdate}\",\"{price}\",\"{EscapeCsvField(site)}\",\"{EscapeCsvField(note)}\",\"{EscapeCsvField(account)}\",\"{createdAtFormatted}\",\"{updatedAtFormatted}\"");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"處理訂閱項目時發生錯誤：{ex.Message}");
+                }
+            }
+
+            return csv.ToString();
+        }
+
+        private string GetPropertyValue(object obj, params string[] propertyNames)
+        {
+            foreach (var propertyName in propertyNames)
+            {
+                var property = obj.GetType().GetProperty(propertyName);
+                if (property != null)
+                {
+                    var value = property.GetValue(obj);
+                    return value?.ToString() ?? "";
+                }
+            }
+            return "";
+        }
+
+        private string FormatDateForCsv(string dateValue)
+        {
+            if (string.IsNullOrEmpty(dateValue))
+                return "";
+
+            try
+            {
+                // 嘗試解析日期時間
+                if (DateTime.TryParse(dateValue, out DateTime parsedDate))
+                {
+                    // 轉換為 UTC 並使用英文格式
+                    return parsedDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture);
+                }
+                
+                // 如果無法解析，返回原始值
+                return dateValue;
+            }
+            catch
+            {
+                // 如果發生錯誤，返回原始值
+                return dateValue;
+            }
+        }
+
+        private string EscapeCsvField(string field)
+        {
+            if (string.IsNullOrEmpty(field))
+                return "";
+            
+            // 將雙引號轉換為兩個雙引號（CSV 標準）
+            return field.Replace("\"", "\"\"");
+        }
+
+        private async Task SaveCsvFile(string csvContent, string fileName)
+        {
+            try
+            {
+                // 使用 SaveFileDialog 讓用戶選擇保存位置
+                var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    FileName = fileName,
+                    DefaultExt = ".csv",
+                    Filter = "CSV 文件 (*.csv)|*.csv|所有文件 (*.*)|*.*",
+                    Title = "保存 CSV 文件"
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    // 使用 UTF-8 編碼保存，包含 BOM 以確保 Excel 正確顯示中文
+                    var utf8WithBom = new System.Text.UTF8Encoding(true);
+                    await File.WriteAllTextAsync(saveFileDialog.FileName, csvContent, utf8WithBom);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"保存文件時發生錯誤：{ex.Message}");
+            }
         }
     }
 }

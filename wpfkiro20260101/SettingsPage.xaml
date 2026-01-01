@@ -239,6 +239,31 @@
                 </StackPanel>
             </Border>
 
+            <!-- 資料匯出區域 -->
+            <Border Style="{StaticResource SettingsCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="資料匯出" Style="{StaticResource SectionTitleStyle}"/>
+                    <TextBlock Text="將您的資料匯出為 CSV 格式，方便備份或在其他應用程式中使用" 
+                               FontSize="14" 
+                               Foreground="#6B7280" 
+                               Margin="0,0,0,20"/>
+                    
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="DownloadFoodCsvButton" 
+                                Content="📥 下載 food.csv" 
+                                Style="{StaticResource SaveButtonStyle}"
+                                Background="#059669"
+                                Margin="0,0,15,0"
+                                Click="DownloadFoodCsv_Click"/>
+                        <Button x:Name="DownloadSubscriptionCsvButton" 
+                                Content="📥 下載 subscription.csv" 
+                                Style="{StaticResource SaveButtonStyle}"
+                                Background="#0891B2"
+                                Click="DownloadSubscriptionCsv_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
                     <!-- 操作按鈕 -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="TestSettingsButton" 

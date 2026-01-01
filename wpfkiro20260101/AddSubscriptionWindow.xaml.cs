@@ -62,7 +62,7 @@ namespace wpfkiro20260101
                     Site = WebsiteTextBox.Text.Trim(),
                     Price = (int)Math.Round(monthlyFee), // 轉換為整數以符合模型
                     Account = "", // 暫時留空，因為表單中沒有此欄位
-                    NextDate = NextPaymentDatePicker.SelectedDate.Value,
+                    NextDate = DateTime.SpecifyKind(NextPaymentDatePicker.SelectedDate.Value, DateTimeKind.Utc),
                     Note = NotesTextBox.Text.Trim(),
                     StringToDate = NextPaymentDatePicker.SelectedDate.Value.ToString("yyyy-MM-dd"),
                     DateTime = NextPaymentDatePicker.SelectedDate.Value,

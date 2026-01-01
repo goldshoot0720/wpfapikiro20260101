@@ -263,8 +263,11 @@ namespace wpfkiro20260101
                 }
                 else
                 {
+                    // 按日期排序 - 由近到遠（最新的在前面）
+                    var sortedData = SortFoodsByDate(foodData);
+                    
                     // 動態創建食品項目
-                    foreach (var item in foodData)
+                    foreach (var item in sortedData)
                     {
                         var foodCard = CreateFoodCard(item);
                         FoodItemsContainer.Children.Add(foodCard);
@@ -277,6 +280,46 @@ namespace wpfkiro20260101
             foreach (var item in foodData)
             {
                 System.Diagnostics.Debug.WriteLine($"食品項目: {item}");
+            }
+        }
+
+        private object[] SortFoodsByDate(object[] foodData)
+        {
+            try
+            {
+                return foodData.OrderByDescending(item =>
+                {
+                    try
+                    {
+                        // 嘗試獲取 toDate 或相關的日期欄位
+                        var toDate = GetPropertyValue(item, "todate", "toDate", "ToDate") ?? "";
+                        
+                        if (DateTime.TryParse(toDate, out DateTime parsedDate))
+                        {
+                            return parsedDate;
+                        }
+                        
+                        // 如果無法解析日期，嘗試使用 createdAt 或 updatedAt
+                        var createdAt = GetPropertyValue(item, "$createdAt", "createdAt", "CreatedAt") ?? "";
+                        if (DateTime.TryParse(createdAt, out DateTime createdDate))
+                        {
+                            return createdDate;
+                        }
+                        
+                        // 如果都無法解析，返回最小值（會排在最後）
+                        return DateTime.MinValue;
+                    }
+                    catch
+                    {
+                        return DateTime.MinValue;
+                    }
+                }).ToArray();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"排序食品資料時發生錯誤：{ex.Message}");
+                // 如果排序失敗，返回原始資料
+                return foodData;
             }
         }
 
@@ -867,6 +910,32 @@ namespace wpfkiro20260101
                 System.Diagnostics.Debug.WriteLine($"AddFood_Click 錯誤: {ex.Message}");
                 ShowErrorMessage($"添加食品時發生錯誤：{ex.Message}");
             }
+        }
+
+        private string GetPropertyValue(object obj, params string[] propertyNames)
+        {
+            if (obj == null) return null;
+
+            var objType = obj.GetType();
+            
+            foreach (var propertyName in propertyNames)
+            {
+                try
+                {
+                    var property = objType.GetProperty(propertyName);
+                    if (property != null)
+                    {
+                        var value = property.GetValue(obj);
+                        return value?.ToString();
+                    }
+                }
+                catch
+                {
+                    // 繼續嘗試下一個屬性名稱
+                }
+            }
+            
+            return null;
         }
     }
 }

@@ -67,7 +67,7 @@ namespace wpfkiro20260101
             var appwriteData = new Dictionary<string, object>
             {
                 ["name"] = subscription.SubscriptionName,      // 實際欄位: "name"
-                ["nextdate"] = subscription.NextDate.ToString("yyyy-MM-dd"),  // 實際欄位: "nextdate"
+                ["nextdate"] = subscription.NextDate,          // 實際欄位: "nextdate" - 直接使用 DateTime 物件
                 ["price"] = subscription.Price,               // 實際欄位: "price"
                 ["site"] = subscription.Site,                 // 實際欄位: "site"
                 ["account"] = subscription.Account,           // 實際欄位: "account"

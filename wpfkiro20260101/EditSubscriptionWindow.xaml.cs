@@ -83,7 +83,7 @@ namespace wpfkiro20260101
                     Site = WebsiteTextBox.Text.Trim(),
                     Price = (int)Math.Round(monthlyFee),
                     Account = AccountTextBox.Text.Trim(),
-                    NextDate = NextPaymentDatePicker.SelectedDate.Value,
+                    NextDate = DateTime.SpecifyKind(NextPaymentDatePicker.SelectedDate.Value, DateTimeKind.Utc),
                     Note = NotesTextBox.Text.Trim(),
                     StringToDate = NextPaymentDatePicker.SelectedDate.Value.ToString("yyyy-MM-dd"),
                     DateTime = NextPaymentDatePicker.SelectedDate.Value,
