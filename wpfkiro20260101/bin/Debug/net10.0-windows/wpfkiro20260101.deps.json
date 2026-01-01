@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "wpfkiro20260101/1.0.0": {
+        "runtime": {
+          "wpfkiro20260101.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "wpfkiro20260101/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

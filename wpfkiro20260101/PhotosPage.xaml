@@ -1,0 +1,209 @@
+<Page x:Class="wpfkiro20260101.PhotosPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:wpfkiro20260101"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="PhotosPage">
+
+    <Page.Resources>
+        <LinearGradientBrush x:Key="PageBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#6366F1" Offset="0"/>
+            <GradientStop Color="#8B5CF6" Offset="0.5"/>
+            <GradientStop Color="#A855F7" Offset="1"/>
+        </LinearGradientBrush>
+        
+        <Style x:Key="PhotoCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" Opacity="0.1" ShadowDepth="2" BlurRadius="8"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="{StaticResource PageBackgroundBrush}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20">
+                <!-- 頁面標題和操作 -->
+                <Grid Margin="0,0,0,30">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <Border Background="#10B981" CornerRadius="8" Width="40" Height="40" Margin="0,0,15,0">
+                            <TextBlock Text="🖼️" FontSize="20" Foreground="White" 
+                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="鋒兄圖片庫" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Text="發現的精美圖片收藏與 AI 創作 (241 張圖片)" FontSize="14" Foreground="White" Opacity="0.8"/>
+                        </StackPanel>
+                    </StackPanel>
+                    
+                    <Button Grid.Column="2" Content="重新整理" Background="#6366F1" Foreground="White" 
+                          BorderThickness="0" Padding="15,8" Margin="0,0,10,0" Cursor="Hand"/>
+                    <Button Grid.Column="3" Content="添加圖片" Background="#EF4444" Foreground="White" 
+                          BorderThickness="0" Padding="15,8" Cursor="Hand"/>
+                </Grid>
+                
+                <!-- 搜尋和篩選 -->
+                <Grid Margin="0,0,0,30">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Border Grid.Column="0" Background="#FFFFFF" CornerRadius="25" Padding="15" Opacity="0.9">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBox Grid.Column="0" Text="搜尋圖片名稱或標籤..." FontSize="14" BorderThickness="0" 
+                                   Background="Transparent" VerticalAlignment="Center" Foreground="#6B7280"/>
+                            <Button Grid.Column="1" Content="🔍 搜尋" Background="#6366F1" Foreground="White" 
+                                  BorderThickness="0" Padding="15,8" Cursor="Hand"/>
+                        </Grid>
+                    </Border>
+                    
+                    <ComboBox Grid.Column="1" Width="120" Height="40" Margin="10,0" Background="#FFFFFF" 
+                            BorderThickness="0">
+                        <ComboBoxItem Content="所有類型" IsSelected="True"/>
+                        <ComboBoxItem Content="JPG"/>
+                        <ComboBoxItem Content="PNG"/>
+                        <ComboBoxItem Content="GIF"/>
+                    </ComboBox>
+                    
+                    <ComboBox Grid.Column="2" Width="120" Height="40" Background="#FFFFFF" 
+                            BorderThickness="0">
+                        <ComboBoxItem Content="按名稱排序" IsSelected="True"/>
+                        <ComboBoxItem Content="按大小排序"/>
+                        <ComboBoxItem Content="按日期排序"/>
+                    </ComboBox>
+                </Grid>
+                
+                <!-- 統計信息 -->
+                <Border Background="#FFFFFF" CornerRadius="12" Padding="20" Margin="0,0,0,20" Opacity="0.9">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Text="顯示 241 / 241 張圖片" FontSize="14" Foreground="#374151" Margin="0,0,20,0"/>
+                        <TextBlock Text="總大小 (V) 825.95 MB" FontSize="14" Foreground="#10B981" Margin="0,0,20,0"/>
+                        <TextBlock Text="PNG: 192" FontSize="14" Foreground="#6366F1" Margin="0,0,20,0"/>
+                        <TextBlock Text="JPG: 41" FontSize="14" Foreground="#F59E0B" Margin="0,0,20,0"/>
+                        <TextBlock Text="JPEG: 8" FontSize="14" Foreground="#EF4444"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- 圖片網格 -->
+                <UniformGrid Columns="6" Margin="0,20">
+                    <!-- 圖片1 -->
+                    <Border Style="{StaticResource PhotoCardStyle}">
+                        <StackPanel>
+                            <Border Background="#F3F4F6" CornerRadius="8" Height="120">
+                                <TextBlock Text="🖼️" FontSize="32" Foreground="#6B7280" 
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="10">
+                                <TextBlock Text="1761405813-e..." FontSize="12" FontWeight="Bold" Foreground="#374151"/>
+                                <TextBlock Text="JPG" FontSize="10" Foreground="#F59E0B" Margin="0,2,0,0"/>
+                                <TextBlock Text="88.7 KB" FontSize="10" Foreground="#6B7280"/>
+                                <TextBlock Text="1761405813-e4ba..." FontSize="9" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- 圖片2 -->
+                    <Border Style="{StaticResource PhotoCardStyle}">
+                        <StackPanel>
+                            <Border Background="#F3F4F6" CornerRadius="8" Height="120">
+                                <TextBlock Text="👤" FontSize="32" Foreground="#6B7280" 
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="10">
+                                <TextBlock Text="1761405863-3..." FontSize="12" FontWeight="Bold" Foreground="#374151"/>
+                                <TextBlock Text="JPG" FontSize="10" Foreground="#F59E0B" Margin="0,2,0,0"/>
+                                <TextBlock Text="73.1 KB" FontSize="10" Foreground="#6B7280"/>
+                                <TextBlock Text="1761405863-3ca..." FontSize="9" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- 圖片3 -->
+                    <Border Style="{StaticResource PhotoCardStyle}">
+                        <StackPanel>
+                            <Border Background="#F3F4F6" CornerRadius="8" Height="120">
+                                <TextBlock Text="🎨" FontSize="32" Foreground="#6B7280" 
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="10">
+                                <TextBlock Text="1761405934-7..." FontSize="12" FontWeight="Bold" Foreground="#374151"/>
+                                <TextBlock Text="JPG" FontSize="10" Foreground="#F59E0B" Margin="0,2,0,0"/>
+                                <TextBlock Text="84.0 KB" FontSize="10" Foreground="#6B7280"/>
+                                <TextBlock Text="1761405934-740..." FontSize="9" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- 圖片4 -->
+                    <Border Style="{StaticResource PhotoCardStyle}">
+                        <StackPanel>
+                            <Border Background="#F3F4F6" CornerRadius="8" Height="120">
+                                <TextBlock Text="🐱" FontSize="32" Foreground="#6B7280" 
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="10">
+                                <TextBlock Text="20240917_183..." FontSize="12" FontWeight="Bold" Foreground="#374151"/>
+                                <TextBlock Text="PNG" FontSize="10" Foreground="#6366F1" Margin="0,2,0,0"/>
+                                <TextBlock Text="7.46 MB" FontSize="10" Foreground="#6B7280"/>
+                                <TextBlock Text="20240917_183x..." FontSize="9" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- 圖片5 -->
+                    <Border Style="{StaticResource PhotoCardStyle}">
+                        <StackPanel>
+                            <Border Background="#F3F4F6" CornerRadius="8" Height="120">
+                                <TextBlock Text="🎭" FontSize="32" Foreground="#6B7280" 
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="10">
+                                <TextBlock Text="202509_A4_2..." FontSize="12" FontWeight="Bold" Foreground="#374151"/>
+                                <TextBlock Text="PNG" FontSize="10" Foreground="#6366F1" Margin="0,2,0,0"/>
+                                <TextBlock Text="9.78 MB" FontSize="10" Foreground="#6B7280"/>
+                                <TextBlock Text="202509_A4_2.png" FontSize="9" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- 圖片6 -->
+                    <Border Style="{StaticResource PhotoCardStyle}">
+                        <StackPanel>
+                            <Border Background="#F3F4F6" CornerRadius="8" Height="120">
+                                <TextBlock Text="🌟" FontSize="32" Foreground="#6B7280" 
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="10">
+                                <TextBlock Text="20251026_214..." FontSize="12" FontWeight="Bold" Foreground="#374151"/>
+                                <TextBlock Text="JPG" FontSize="10" Foreground="#F59E0B" Margin="0,2,0,0"/>
+                                <TextBlock Text="689.4 KB" FontSize="10" Foreground="#6B7280"/>
+                                <TextBlock Text="20251026_214x..." FontSize="9" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>
