@@ -38,7 +38,21 @@ namespace wpfkiro20260101
         public SubscriptionPage()
         {
             InitializeComponent();
+            
+            // 訂閱設定變更事件
+            AppSettings.SettingsChanged += OnSettingsChanged;
+            
             Loaded += async (s, e) => await LoadSubscriptionData();
+        }
+
+        private async void OnSettingsChanged()
+        {
+            // 在 UI 線程上重新載入資料
+            await Dispatcher.InvokeAsync(async () =>
+            {
+                await LoadSubscriptionData();
+                ShowInfoMessage("設定已更新，訂閱資料已重新載入");
+            });
         }
 
         private async Task LoadSubscriptionData()
@@ -328,7 +342,7 @@ namespace wpfkiro20260101
         {
             try
             {
-                return subscriptionData.OrderByDescending(item =>
+                return subscriptionData.OrderBy(item =>
                 {
                     try
                     {
@@ -340,12 +354,12 @@ namespace wpfkiro20260101
                             return parsedDate;
                         }
                         
-                        // 如果無法解析日期，返回最小值（會排在最後）
-                        return DateTime.MinValue;
+                        // 如果無法解析日期，返回最大值（會排在最後）
+                        return DateTime.MaxValue;
                     }
                     catch
                     {
-                        return DateTime.MinValue;
+                        return DateTime.MaxValue;
                     }
                 }).ToArray();
             }

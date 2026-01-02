@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using wpfkiro20260101.Services;
 
 namespace wpfkiro20260101
 {
@@ -259,7 +260,20 @@ namespace wpfkiro20260101
             }
         }
 
-        private AppSettings() { }
+        public AppSettings()
+        {
+            // 訂閱設定更新事件
+            SettingsProfileService.OnSettingsUpdated += OnSettingsChanged;
+        }
+
+        private void OnSettingsChanged()
+        {
+            // 觸發設定變更事件，通知 UI 更新
+            SettingsChanged?.Invoke();
+        }
+
+        // 設定變更事件，供 UI 組件訂閱
+        public static event Action? SettingsChanged;
 
         public void Save()
         {

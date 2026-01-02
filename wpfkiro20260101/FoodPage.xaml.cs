@@ -27,7 +27,21 @@ namespace wpfkiro20260101
         public FoodPage()
         {
             InitializeComponent();
+            
+            // 訂閱設定變更事件
+            AppSettings.SettingsChanged += OnSettingsChanged;
+            
             Loaded += async (s, e) => await LoadFoodData();
+        }
+
+        private async void OnSettingsChanged()
+        {
+            // 在 UI 線程上重新載入資料
+            await Dispatcher.InvokeAsync(async () =>
+            {
+                await LoadFoodData();
+                ShowInfoMessage("設定已更新，食品資料已重新載入");
+            });
         }
 
         private async Task LoadFoodData()
@@ -287,7 +301,7 @@ namespace wpfkiro20260101
         {
             try
             {
-                return foodData.OrderByDescending(item =>
+                return foodData.OrderBy(item =>
                 {
                     try
                     {
@@ -306,12 +320,12 @@ namespace wpfkiro20260101
                             return createdDate;
                         }
                         
-                        // 如果都無法解析，返回最小值（會排在最後）
-                        return DateTime.MinValue;
+                        // 如果都無法解析，返回最大值（會排在最後）
+                        return DateTime.MaxValue;
                     }
                     catch
                     {
-                        return DateTime.MinValue;
+                        return DateTime.MaxValue;
                     }
                 }).ToArray();
             }

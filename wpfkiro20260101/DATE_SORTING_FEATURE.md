@@ -1,19 +1,19 @@
 # 日期排序功能實現
 
 ## 功能描述
-為食品管理和訂閱管理頁面添加日期排序功能，將資料按日期由近到遠排序（最新的在前面）。
+為食品管理和訂閱管理頁面添加日期排序功能，將資料按日期由近到遠排序（最近的日期在前面）。
 
 ## 實現的功能
 
 ### 1. 訂閱頁面排序 (SubscriptionPage.xaml.cs)
 - **排序欄位**: `nextdate` (下次付款日期)
-- **排序方式**: 降序排列 (OrderByDescending)
+- **排序方式**: 升序排列 (OrderBy)
 - **顯示效果**: 最近要付款的訂閱顯示在最前面
 
 ### 2. 食品頁面排序 (FoodPage.xaml.cs)
 - **主要排序欄位**: `todate` (到期日期)
 - **備用排序欄位**: `createdAt` (創建時間)
-- **排序方式**: 降序排列 (OrderByDescending)
+- **排序方式**: 升序排列 (OrderBy)
 - **顯示效果**: 最近到期或最新添加的食品顯示在最前面
 
 ## 技術實現
@@ -24,14 +24,14 @@
 ```csharp
 private object[] SortSubscriptionsByDate(object[] subscriptionData)
 {
-    return subscriptionData.OrderByDescending(item =>
+    return subscriptionData.OrderBy(item =>
     {
         var nextDate = GetPropertyValue(item, "nextdate", "nextDate", "NextDate") ?? "";
         if (DateTime.TryParse(nextDate, out DateTime parsedDate))
         {
             return parsedDate;
         }
-        return DateTime.MinValue; // 無效日期排在最後
+        return DateTime.MaxValue; // 無效日期排在最後
     }).ToArray();
 }
 ```
@@ -40,7 +40,7 @@ private object[] SortSubscriptionsByDate(object[] subscriptionData)
 ```csharp
 private object[] SortFoodsByDate(object[] foodData)
 {
-    return foodData.OrderByDescending(item =>
+    return foodData.OrderBy(item =>
     {
         // 優先使用到期日期
         var toDate = GetPropertyValue(item, "todate", "toDate", "ToDate") ?? "";
@@ -56,7 +56,7 @@ private object[] SortFoodsByDate(object[] foodData)
             return createdDate;
         }
         
-        return DateTime.MinValue; // 無效日期排在最後
+        return DateTime.MaxValue; // 無效日期排在最後
     }).ToArray();
 }
 
@@ -96,8 +96,8 @@ foreach (var item in sortedData)
 3. **備用欄位**: 食品頁面在主要日期欄位無效時，會使用創建時間作為備用排序依據
 
 ### 排序順序
-- **降序排列**: 使用 `OrderByDescending()` 確保最新日期在前
-- **無效處理**: 無法解析的日期使用 `DateTime.MinValue`，自動排在最後
+- **升序排列**: 使用 `OrderBy()` 確保最近日期在前
+- **無效處理**: 無法解析的日期使用 `DateTime.MaxValue`，自動排在最後
 
 ## 使用者體驗改善
 
