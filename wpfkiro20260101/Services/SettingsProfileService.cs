@@ -152,6 +152,9 @@ namespace wpfkiro20260101.Services
                 profile.ApplyToAppSettings(settings);
                 settings.Save();
 
+                // 觸發設定更新事件，通知所有相關組件
+                OnSettingsUpdated?.Invoke();
+
                 return BackendServiceResult<bool>.CreateSuccess(true);
             }
             catch (Exception ex)
@@ -159,6 +162,9 @@ namespace wpfkiro20260101.Services
                 return BackendServiceResult<bool>.CreateError($"載入設定檔失敗：{ex.Message}");
             }
         }
+
+        // 設定更新事件
+        public static event Action? OnSettingsUpdated;
 
         public async Task<BackendServiceResult<List<SettingsProfile>>> ImportProfilesAsync(string jsonContent)
         {

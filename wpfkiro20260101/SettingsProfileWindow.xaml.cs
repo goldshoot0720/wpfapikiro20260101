@@ -182,7 +182,7 @@ namespace wpfkiro20260101
                     if (loadResult.Success)
                     {
                         UpdateStatusText($"設定檔 '{selectedProfile.ProfileName}' 載入成功");
-                        MessageBox.Show("設定檔載入成功！請重新啟動應用程式以確保所有設定生效。", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show("設定檔載入成功！所有設定已即時更新，無需重新啟動應用程式。", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else
                     {

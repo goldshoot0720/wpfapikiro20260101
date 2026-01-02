@@ -104,8 +104,6 @@ namespace wpfkiro20260101.Services
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
-                _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-                _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
 
                 var apiUrl = $"{_settings.ApiUrl}/rest/v1/food";
                 System.Diagnostics.Debug.WriteLine($"嘗試連接 Supabase Food API: {apiUrl}");
@@ -129,17 +127,17 @@ namespace wpfkiro20260101.Services
                             id = item.TryGetProperty("id", out var id) ? id.GetString() : "",
                             foodName = item.TryGetProperty("name", out var name) ? name.GetString() : "",
                             price = item.TryGetProperty("price", out var price) ? (price.ValueKind == JsonValueKind.Number ? price.GetInt32() : 0) : 0,
-                            photo = item.TryGetProperty("photo", out var photo) ? photo.GetString() : "",
-                            photoHash = "", // 不存在於實際資料表中
-                            shop = item.TryGetProperty("shop", out var shop) ? shop.GetString() : "",
-                            toDate = item.TryGetProperty("todate", out var toDate) ? toDate.GetString() : "",
+                            photo = item.TryGetProperty("photohash", out var photohash) ? photohash.GetString() : "", // 修正：photohash
+                            photoHash = item.TryGetProperty("photohash", out var photohash2) ? photohash2.GetString() : "",
+                            shop = item.TryGetProperty("site", out var site) ? site.GetString() : "", // 修正：site
+                            toDate = item.TryGetProperty("nextdate", out var nextdate) ? nextdate.GetString() : "", // 修正：nextdate
                             description = "", // 不存在於實際資料表中
                             category = "", // 不存在於實際資料表中
                             storageLocation = "", // 不存在於實際資料表中
-                            note = "", // 不存在於實際資料表中
-                            account = item.TryGetProperty("account", out var account) ? account.GetString() : "",
+                            note = item.TryGetProperty("note", out var note) ? note.GetString() : "",
+                            account = "", // 不存在於實際資料表中
                             createdAt = item.TryGetProperty("created_at", out var createdAt) ? createdAt.GetString() : "",
-                            updatedAt = item.TryGetProperty("updated_at", out var updatedAt) ? updatedAt.GetString() : ""
+                            updatedAt = "" // 不存在於實際資料表中
                         });
                     }
                     
@@ -179,10 +177,9 @@ namespace wpfkiro20260101.Services
                 {
                     data["name"] = food.FoodName;
                     data["price"] = food.Price;
-                    data["photo"] = food.Photo;
-                    data["shop"] = food.Shop;
-                    data["todate"] = food.ToDate;
-                    data["account"] = ""; // 新欄位，暫時留空
+                    data["photohash"] = food.Photo; // 修正：photohash
+                    data["site"] = food.Shop; // 修正：site
+                    data["nextdate"] = food.ToDate; // 修正：nextdate
                 }
 
                 var json = JsonSerializer.Serialize(data);
@@ -230,10 +227,9 @@ namespace wpfkiro20260101.Services
                 {
                     data["name"] = food.FoodName;
                     data["price"] = food.Price;
-                    data["photo"] = food.Photo;
-                    data["shop"] = food.Shop;
-                    data["todate"] = food.ToDate;
-                    data["account"] = ""; // 新欄位，暫時留空
+                    data["photohash"] = food.Photo; // 修正：photohash
+                    data["site"] = food.Shop; // 修正：site
+                    data["nextdate"] = food.ToDate; // 修正：nextdate
                 }
 
                 var json = JsonSerializer.Serialize(data);
@@ -309,8 +305,6 @@ namespace wpfkiro20260101.Services
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
-                _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-                _httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
 
                 var apiUrl = $"{_settings.ApiUrl}/rest/v1/subscription";
                 System.Diagnostics.Debug.WriteLine($"嘗試連接 Supabase Subscription API: {apiUrl}");

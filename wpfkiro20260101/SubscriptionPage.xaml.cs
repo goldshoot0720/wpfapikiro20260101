@@ -139,24 +139,31 @@ namespace wpfkiro20260101
         {
             try
             {
-                await Task.Delay(500);
-                var mockData = new object[]
+                if (_currentBackendService is SupabaseService supabaseService)
                 {
-                    new { 
-                        id = "supabase_1", 
-                        name = "Supabase Pro 方案",
-                        website = "https://supabase.com",
-                        price = 25.0,
-                        currency = "USD",
-                        nextPayment = DateTime.Now.AddDays(20).Date,
-                        category = "資料庫服務"
+                    var result = await supabaseService.GetSubscriptionsAsync();
+                    
+                    if (result.Success)
+                    {
+                        UpdateSubscriptionList(result.Data, "Supabase");
                     }
-                };
-                UpdateSubscriptionList(mockData, "Supabase");
+                    else
+                    {
+                        ShowErrorMessage($"Supabase 訂閱資料載入失敗：{result.ErrorMessage}");
+                        // 顯示空資料狀態
+                        UpdateSubscriptionList(new object[0], "Supabase");
+                    }
+                }
+                else
+                {
+                    ShowErrorMessage("Supabase 服務未正確初始化");
+                    UpdateSubscriptionList(new object[0], "Supabase");
+                }
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Supabase 訂閱資料載入錯誤：{ex.Message}");
+                UpdateSubscriptionList(new object[0], "Supabase");
             }
         }
 
@@ -164,24 +171,30 @@ namespace wpfkiro20260101
         {
             try
             {
-                await Task.Delay(500);
-                var mockData = new object[]
+                if (_currentBackendService is Back4AppService back4AppService)
                 {
-                    new { 
-                        id = "back4app_1", 
-                        name = "Back4App 企業版",
-                        website = "https://www.back4app.com",
-                        price = 50.0,
-                        currency = "USD",
-                        nextPayment = DateTime.Now.AddDays(25).Date,
-                        category = "後端服務"
+                    var result = await back4AppService.GetSubscriptionsAsync();
+                    
+                    if (result.Success)
+                    {
+                        UpdateSubscriptionList(result.Data, "Back4App");
                     }
-                };
-                UpdateSubscriptionList(mockData, "Back4App");
+                    else
+                    {
+                        ShowErrorMessage($"Back4App 訂閱資料載入失敗：{result.ErrorMessage}");
+                        UpdateSubscriptionList(new object[0], "Back4App");
+                    }
+                }
+                else
+                {
+                    ShowErrorMessage("Back4App 服務未正確初始化");
+                    UpdateSubscriptionList(new object[0], "Back4App");
+                }
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Back4App 訂閱資料載入錯誤：{ex.Message}");
+                UpdateSubscriptionList(new object[0], "Back4App");
             }
         }
 
@@ -189,33 +202,30 @@ namespace wpfkiro20260101
         {
             try
             {
-                await Task.Delay(500);
-                var mockData = new object[]
+                if (_currentBackendService is MySQLService mySQLService)
                 {
-                    new { 
-                        id = "mysql_1", 
-                        name = "MySQL 雲端資料庫",
-                        website = "https://www.mysql.com",
-                        price = 35.0,
-                        currency = "USD",
-                        nextPayment = DateTime.Now.AddDays(10).Date,
-                        category = "資料庫"
-                    },
-                    new { 
-                        id = "mysql_2", 
-                        name = "MySQL 備份服務",
-                        website = "https://www.mysql.com/backup",
-                        price = 15.0,
-                        currency = "USD",
-                        nextPayment = DateTime.Now.AddDays(5).Date,
-                        category = "備份服務"
+                    var result = await mySQLService.GetSubscriptionsAsync();
+                    
+                    if (result.Success)
+                    {
+                        UpdateSubscriptionList(result.Data, "MySQL");
                     }
-                };
-                UpdateSubscriptionList(mockData, "MySQL");
+                    else
+                    {
+                        ShowErrorMessage($"MySQL 訂閱資料載入失敗：{result.ErrorMessage}");
+                        UpdateSubscriptionList(new object[0], "MySQL");
+                    }
+                }
+                else
+                {
+                    ShowErrorMessage("MySQL 服務未正確初始化");
+                    UpdateSubscriptionList(new object[0], "MySQL");
+                }
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"MySQL 訂閱資料載入錯誤：{ex.Message}");
+                UpdateSubscriptionList(new object[0], "MySQL");
             }
         }
 
@@ -223,24 +233,30 @@ namespace wpfkiro20260101
         {
             try
             {
-                await Task.Delay(500);
-                var mockData = new object[]
+                if (_currentBackendService is ContentfulService contentfulService)
                 {
-                    new { 
-                        id = "contentful_1", 
-                        name = "Contentful CMS 專業版",
-                        website = "https://www.contentful.com",
-                        price = 489.0,
-                        currency = "USD",
-                        nextPayment = DateTime.Now.AddDays(30).Date,
-                        category = "內容管理"
+                    var result = await contentfulService.GetSubscriptionsAsync();
+                    
+                    if (result.Success)
+                    {
+                        UpdateSubscriptionList(result.Data, "Contentful");
                     }
-                };
-                UpdateSubscriptionList(mockData, "Contentful");
+                    else
+                    {
+                        ShowErrorMessage($"Contentful 訂閱資料載入失敗：{result.ErrorMessage}");
+                        UpdateSubscriptionList(new object[0], "Contentful");
+                    }
+                }
+                else
+                {
+                    ShowErrorMessage("Contentful 服務未正確初始化");
+                    UpdateSubscriptionList(new object[0], "Contentful");
+                }
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Contentful 訂閱資料載入錯誤：{ex.Message}");
+                UpdateSubscriptionList(new object[0], "Contentful");
             }
         }
 

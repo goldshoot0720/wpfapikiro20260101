@@ -22,6 +22,9 @@ namespace wpfkiro20260101
             
             LoadSettings();
             
+            // 訂閱設定變更事件
+            AppSettings.SettingsChanged += OnSettingsChanged;
+            
             // 確保在頁面載入後正確顯示欄位
             this.Loaded += (s, e) => 
             {
@@ -29,6 +32,16 @@ namespace wpfkiro20260101
                 System.Diagnostics.Debug.WriteLine($"頁面載入事件 - 當前後端服務: {settings.BackendService}");
                 UpdateFieldsForService(settings.BackendService);
             };
+        }
+
+        private void OnSettingsChanged()
+        {
+            // 在 UI 線程上重新載入設定
+            Dispatcher.Invoke(() =>
+            {
+                LoadSettings();
+                ShowStatusMessage("設定檔已載入，界面已更新", System.Windows.Media.Brushes.Green);
+            });
         }
 
         private void LoadSettings()
@@ -127,6 +140,8 @@ namespace wpfkiro20260101
             ApiKeyPasswordBox.Password = settings.ApiKey;
             DatabaseIdTextBox.Text = settings.DatabaseId;
             BucketIdTextBox.Text = settings.BucketId;
+            FoodCollectionIdTextBox.Text = settings.FoodCollectionId;
+            SubscriptionCollectionIdTextBox.Text = settings.SubscriptionCollectionId;
 
             // 特別處理 Supabase 設定，確保使用正確的值
             if (settings.BackendService == BackendServiceType.Supabase)
@@ -188,6 +203,8 @@ namespace wpfkiro20260101
                 settings.ApiKey = ApiKeyPasswordBox.Password;
                 settings.DatabaseId = DatabaseIdTextBox.Text;
                 settings.BucketId = BucketIdTextBox.Text;
+                settings.FoodCollectionId = FoodCollectionIdTextBox.Text;
+                settings.SubscriptionCollectionId = SubscriptionCollectionIdTextBox.Text;
 
                 // 儲存到檔案
                 settings.Save();
@@ -339,10 +356,25 @@ namespace wpfkiro20260101
                     if (connectionSuccess)
                     {
                         ShowStatusMessage($"連線測試成功！({service.ServiceName})", Brushes.Green);
+                        
+                        // 如果是 Supabase，執行額外的診斷
+                        if (tempSettings.BackendService == BackendServiceType.Supabase)
+                        {
+                            ShowStatusMessage("Supabase 連線成功，正在執行修正後的測試...", Brushes.Blue);
+                            await TestSupabaseHeaderFix.RunHeaderFixTest();
+                            ShowStatusMessage("Supabase 測試完成，請查看控制台輸出", Brushes.Green);
+                        }
                     }
                     else
                     {
                         ShowStatusMessage($"連線測試失敗，請檢查 {service.ServiceName} 設定", Brushes.Red);
+                        
+                        // 如果是 Supabase 連線失敗，提供診斷建議
+                        if (tempSettings.BackendService == BackendServiceType.Supabase)
+                        {
+                            ShowStatusMessage("Supabase 連線失敗，正在執行修正後的診斷...", Brushes.Orange);
+                            await TestSupabaseHeaderFix.RunHeaderFixTest();
+                        }
                     }
                 }
                 finally
@@ -542,6 +574,10 @@ namespace wpfkiro20260101
                     DatabaseIdTextBox.Visibility = System.Windows.Visibility.Visible;
                     BucketIdLabel.Visibility = System.Windows.Visibility.Visible;
                     BucketIdTextBox.Visibility = System.Windows.Visibility.Visible;
+                    FoodCollectionIdLabel.Visibility = System.Windows.Visibility.Visible;
+                    FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Visible;
+                    SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Visible;
+                    SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Visible;
                     break;
                 case BackendServiceType.Contentful:
                     ApiUrlLabel.Text = "API URL:";
@@ -551,6 +587,10 @@ namespace wpfkiro20260101
                     DatabaseIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     break;
                 case BackendServiceType.Back4App:
                     ApiUrlLabel.Text = "API URL:";
@@ -560,6 +600,10 @@ namespace wpfkiro20260101
                     DatabaseIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     break;
                 case BackendServiceType.MySQL:
                     ApiUrlLabel.Text = "API URL:";
@@ -569,6 +613,10 @@ namespace wpfkiro20260101
                     DatabaseIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     break;
                 case BackendServiceType.Supabase:
                     ApiUrlLabel.Text = "API URL:";
@@ -578,6 +626,10 @@ namespace wpfkiro20260101
                     DatabaseIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     break;
                 case BackendServiceType.Strapi:
                     ApiUrlLabel.Text = "API URL:";
@@ -587,6 +639,10 @@ namespace wpfkiro20260101
                     DatabaseIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     break;
                 case BackendServiceType.Sanity:
                     ApiUrlLabel.Text = "API URL:";
@@ -596,6 +652,10 @@ namespace wpfkiro20260101
                     DatabaseIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     break;
                 default:
                     ApiUrlLabel.Text = "API URL:";
@@ -605,6 +665,10 @@ namespace wpfkiro20260101
                     DatabaseIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     BucketIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     break;
             }
 
@@ -1149,16 +1213,95 @@ namespace wpfkiro20260101
             }
         }
 
+        private async void TestHotReload_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TestHotReloadButton.IsEnabled = false;
+                TestHotReloadButton.Content = "測試中...";
+                ShowStatusMessage("正在測試設定檔熱重載功能...", Brushes.Blue);
+
+                await TestHotReloadSettings.TestHotReloadFunctionality();
+                
+                ShowStatusMessage("熱重載功能測試完成，請查看調試輸出", Brushes.Green);
+                TestHotReloadSettings.ShowHotReloadGuide();
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"測試熱重載功能時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                TestHotReloadButton.IsEnabled = true;
+                TestHotReloadButton.Content = "🔥 測試熱重載";
+            }
+        }
+
+        private async void QuickTest_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                QuickTestButton.IsEnabled = false;
+                QuickTestButton.Content = "測試中...";
+                ShowStatusMessage("正在執行快速測試...", Brushes.Blue);
+
+                // 檢查當前後端服務
+                var settings = AppSettings.Instance;
+                Console.WriteLine($"當前後端服務: {settings.BackendService}");
+                
+                if (settings.BackendService == BackendServiceType.Supabase)
+                {
+                    // 如果是 Supabase，執行修正後的測試
+                    Console.WriteLine("執行修正後的 Supabase 測試...");
+                    await TestSupabaseFixed.RunFixedTest();
+                    TestSupabaseFixed.ShowFixedIssues();
+                }
+                else
+                {
+                    // 執行一般測試
+                    Console.WriteLine("執行一般功能測試...");
+                    
+                    // 測試摺疊功能
+                    await TestCollapsibleSettings.TestCollapsibleFunctionality();
+                    
+                    // 測試 Appwrite Table ID 設定
+                    await TestCollapsibleSettings.TestAppwriteTableIdConfiguration();
+                    
+                    // 顯示使用指南
+                    TestCollapsibleSettings.ShowCollapsibleGuide();
+                }
+                
+                ShowStatusMessage("快速測試完成，請查看控制台輸出", Brushes.Green);
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"快速測試時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                QuickTestButton.IsEnabled = true;
+                QuickTestButton.Content = "⚡ 快速測試";
+            }
+        }
+
         // 缺少的事件處理方法
         private void BackendServiceHeader_Click(object sender, RoutedEventArgs e)
         {
             // 切換後端服務設定的顯示/隱藏
             try
             {
-                var expander = sender as System.Windows.Controls.Expander;
-                if (expander != null)
+                if (BackendServiceContent != null && BackendExpandIcon != null)
                 {
-                    // 可以在這裡添加展開/收合的邏輯
+                    if (BackendServiceContent.Visibility == Visibility.Visible)
+                    {
+                        BackendServiceContent.Visibility = Visibility.Collapsed;
+                        BackendExpandIcon.Text = "▶";
+                    }
+                    else
+                    {
+                        BackendServiceContent.Visibility = Visibility.Visible;
+                        BackendExpandIcon.Text = "▼";
+                    }
                 }
             }
             catch (Exception ex)
@@ -1172,10 +1315,18 @@ namespace wpfkiro20260101
             // 切換連線設定的顯示/隱藏
             try
             {
-                var expander = sender as System.Windows.Controls.Expander;
-                if (expander != null)
+                if (ConnectionSettingsContent != null && ConnectionExpandIcon != null)
                 {
-                    // 可以在這裡添加展開/收合的邏輯
+                    if (ConnectionSettingsContent.Visibility == Visibility.Visible)
+                    {
+                        ConnectionSettingsContent.Visibility = Visibility.Collapsed;
+                        ConnectionExpandIcon.Text = "▶";
+                    }
+                    else
+                    {
+                        ConnectionSettingsContent.Visibility = Visibility.Visible;
+                        ConnectionExpandIcon.Text = "▼";
+                    }
                 }
             }
             catch (Exception ex)

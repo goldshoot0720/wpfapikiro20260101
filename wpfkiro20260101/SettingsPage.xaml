@@ -381,6 +381,20 @@
                                 Margin="0,0,15,0"
                                 Click="TestExport_Click"/>
                         
+                        <Button x:Name="TestHotReloadButton" 
+                                Content="🔥 測試熱重載" 
+                                Style="{StaticResource SaveButtonStyle}"
+                                Background="#EF4444"
+                                Margin="0,0,15,0"
+                                Click="TestHotReload_Click"/>
+                        
+                        <Button x:Name="QuickTestButton" 
+                                Content="⚡ 快速測試" 
+                                Style="{StaticResource SaveButtonStyle}"
+                                Background="#06B6D4"
+                                Margin="0,0,15,0"
+                                Click="QuickTest_Click"/>
+                        
                         <TextBlock x:Name="ProfileCountInfo" 
                                    Text="載入中..." 
                                    VerticalAlignment="Center"
