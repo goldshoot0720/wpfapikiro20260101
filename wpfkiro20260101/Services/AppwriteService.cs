@@ -667,6 +667,231 @@ namespace wpfkiro20260101.Services
             }
         }
 
+        // Settings Profile CRUD operations
+        public async Task<BackendServiceResult<object[]>> GetSettingsProfilesAsync()
+        {
+            try
+            {
+                if (_client == null)
+                {
+                    var initResult = await InitializeAsync();
+                    if (!initResult)
+                    {
+                        return BackendServiceResult<object[]>.CreateError("Appwrite 客戶端未初始化");
+                    }
+                }
+
+                var settings = AppSettings.Instance;
+                if (string.IsNullOrWhiteSpace(settings.DatabaseId))
+                {
+                    return BackendServiceResult<object[]>.CreateError("資料庫ID未設定");
+                }
+
+                // 使用 Appwrite Databases 服務
+                var databases = new Appwrite.Services.Databases(_client);
+                
+                // 獲取設定檔文檔 - 使用 "settings_profiles" 集合
+                var documents = await databases.ListDocuments(
+                    databaseId: settings.DatabaseId,
+                    collectionId: "settings_profiles"
+                );
+
+                // 轉換為我們的資料格式
+                var profiles = documents.Documents.Select(doc => new
+                {
+                    id = doc.Id,
+                    profileName = doc.Data.TryGetValue("profile_name", out var profileName) ? profileName?.ToString() ?? "" : "",
+                    backendService = doc.Data.TryGetValue("backend_service", out var backendService) ? backendService?.ToString() ?? "" : "",
+                    apiUrl = doc.Data.TryGetValue("api_url", out var apiUrl) ? apiUrl?.ToString() ?? "" : "",
+                    projectId = doc.Data.TryGetValue("project_id", out var projectId) ? projectId?.ToString() ?? "" : "",
+                    apiKey = doc.Data.TryGetValue("api_key", out var apiKey) ? apiKey?.ToString() ?? "" : "",
+                    databaseId = doc.Data.TryGetValue("database_id", out var databaseId) ? databaseId?.ToString() ?? "" : "",
+                    bucketId = doc.Data.TryGetValue("bucket_id", out var bucketId) ? bucketId?.ToString() ?? "" : "",
+                    foodCollectionId = doc.Data.TryGetValue("food_collection_id", out var foodCollectionId) ? foodCollectionId?.ToString() ?? "" : "",
+                    subscriptionCollectionId = doc.Data.TryGetValue("subscription_collection_id", out var subscriptionCollectionId) ? subscriptionCollectionId?.ToString() ?? "" : "",
+                    description = doc.Data.TryGetValue("description", out var description) ? description?.ToString() ?? "" : "",
+                    createdAt = doc.CreatedAt,
+                    updatedAt = doc.UpdatedAt
+                }).ToArray<object>();
+
+                return BackendServiceResult<object[]>.CreateSuccess(profiles);
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object[]>.CreateError($"載入設定檔資料失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<object>> CreateSettingsProfileAsync(object profileData)
+        {
+            try
+            {
+                if (_client == null)
+                {
+                    var initResult = await InitializeAsync();
+                    if (!initResult)
+                    {
+                        return BackendServiceResult<object>.CreateError("Appwrite 客戶端未初始化");
+                    }
+                }
+
+                var settings = AppSettings.Instance;
+                if (string.IsNullOrWhiteSpace(settings.DatabaseId))
+                {
+                    return BackendServiceResult<object>.CreateError("資料庫ID未設定");
+                }
+
+                // 使用 Appwrite Databases 服務
+                var databases = new Appwrite.Services.Databases(_client);
+                
+                // 將 profileData 轉換為字典
+                var data = new Dictionary<string, object>();
+                
+                if (profileData is Models.SettingsProfile profile)
+                {
+                    data["profile_name"] = profile.ProfileName;
+                    data["backend_service"] = profile.BackendService.ToString();
+                    data["api_url"] = profile.ApiUrl;
+                    data["project_id"] = profile.ProjectId;
+                    data["api_key"] = profile.ApiKey;
+                    data["database_id"] = profile.DatabaseId;
+                    data["bucket_id"] = profile.BucketId;
+                    data["food_collection_id"] = profile.FoodCollectionId;
+                    data["subscription_collection_id"] = profile.SubscriptionCollectionId;
+                    data["description"] = profile.Description;
+                }
+                else
+                {
+                    return BackendServiceResult<object>.CreateError("無效的設定檔資料格式");
+                }
+
+                // 創建文檔
+                var document = await databases.CreateDocument(
+                    databaseId: settings.DatabaseId,
+                    collectionId: "settings_profiles",
+                    documentId: Appwrite.ID.Unique(),
+                    data: data
+                );
+
+                var result = new
+                {
+                    id = document.Id,
+                    data = profileData,
+                    createdAt = document.CreatedAt,
+                    updatedAt = document.UpdatedAt
+                };
+
+                return BackendServiceResult<object>.CreateSuccess(result);
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object>.CreateError($"創建設定檔失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<object>> UpdateSettingsProfileAsync(string id, object profileData)
+        {
+            try
+            {
+                if (_client == null)
+                {
+                    var initResult = await InitializeAsync();
+                    if (!initResult)
+                    {
+                        return BackendServiceResult<object>.CreateError("Appwrite 客戶端未初始化");
+                    }
+                }
+
+                var settings = AppSettings.Instance;
+                if (string.IsNullOrWhiteSpace(settings.DatabaseId))
+                {
+                    return BackendServiceResult<object>.CreateError("資料庫ID未設定");
+                }
+
+                // 使用 Appwrite Databases 服務
+                var databases = new Appwrite.Services.Databases(_client);
+                
+                // 將 profileData 轉換為字典
+                var data = new Dictionary<string, object>();
+                
+                if (profileData is Models.SettingsProfile profile)
+                {
+                    data["profile_name"] = profile.ProfileName;
+                    data["backend_service"] = profile.BackendService.ToString();
+                    data["api_url"] = profile.ApiUrl;
+                    data["project_id"] = profile.ProjectId;
+                    data["api_key"] = profile.ApiKey;
+                    data["database_id"] = profile.DatabaseId;
+                    data["bucket_id"] = profile.BucketId;
+                    data["food_collection_id"] = profile.FoodCollectionId;
+                    data["subscription_collection_id"] = profile.SubscriptionCollectionId;
+                    data["description"] = profile.Description;
+                }
+                else
+                {
+                    return BackendServiceResult<object>.CreateError("無效的設定檔資料格式");
+                }
+
+                // 更新文檔
+                var document = await databases.UpdateDocument(
+                    databaseId: settings.DatabaseId,
+                    collectionId: "settings_profiles",
+                    documentId: id,
+                    data: data
+                );
+
+                var result = new
+                {
+                    id = document.Id,
+                    data = profileData,
+                    updatedAt = document.UpdatedAt
+                };
+
+                return BackendServiceResult<object>.CreateSuccess(result);
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<object>.CreateError($"更新設定檔失敗：{ex.Message}");
+            }
+        }
+
+        public async Task<BackendServiceResult<bool>> DeleteSettingsProfileAsync(string id)
+        {
+            try
+            {
+                if (_client == null)
+                {
+                    var initResult = await InitializeAsync();
+                    if (!initResult)
+                    {
+                        return BackendServiceResult<bool>.CreateError("Appwrite 客戶端未初始化");
+                    }
+                }
+
+                var settings = AppSettings.Instance;
+                if (string.IsNullOrWhiteSpace(settings.DatabaseId))
+                {
+                    return BackendServiceResult<bool>.CreateError("資料庫ID未設定");
+                }
+
+                // 使用 Appwrite Databases 服務
+                var databases = new Appwrite.Services.Databases(_client);
+                
+                // 刪除文檔
+                await databases.DeleteDocument(
+                    databaseId: settings.DatabaseId,
+                    collectionId: "settings_profiles",
+                    documentId: id
+                );
+
+                return BackendServiceResult<bool>.CreateSuccess(true);
+            }
+            catch (Exception ex)
+            {
+                return BackendServiceResult<bool>.CreateError($"刪除設定檔失敗：{ex.Message}");
+            }
+        }
+
         public Client? GetClient() => _client;
         public Health? GetHealth() => _health;
     }

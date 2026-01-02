@@ -1,0 +1,320 @@
+<Window x:Class="wpfkiro20260101.SettingsProfileWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="設定檔管理" Height="600" Width="900"
+        WindowStartupLocation="CenterOwner"
+        Background="#F9FAFB">
+
+    <Window.Resources>
+        <!-- 按鈕樣式 -->
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#6366F1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"
+                                            Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#4F46E5"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#4338CA"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#9CA3AF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 危險按鈕樣式 -->
+        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#EF4444"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#DC2626"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#B91C1C"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 成功按鈕樣式 -->
+        <Style x:Key="SuccessButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#10B981"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#059669"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#047857"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 警告按鈕樣式 -->
+        <Style x:Key="WarningButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#F59E0B"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#D97706"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#B45309"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 卡片樣式 -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" Opacity="0.1" ShadowDepth="1" BlurRadius="6"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 標題 -->
+        <TextBlock Grid.Row="0" 
+                   Text="設定檔管理" 
+                   FontSize="24" 
+                   FontWeight="Bold" 
+                   Foreground="#111827" 
+                   Margin="0,0,0,20"/>
+
+        <!-- 統計資訊 -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="設定檔數量：" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <TextBlock x:Name="ProfileCountText" Text="0" FontWeight="Bold" Foreground="#6366F1" VerticalAlignment="Center" Margin="5,0,20,0"/>
+                <TextBlock Text="/ 100" Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                <TextBlock x:Name="StorageInfoText" Text="可用空間充足" Foreground="#10B981" FontSize="12" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 主要內容區域 -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 設定檔列表 -->
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 列表標題和搜尋 -->
+                    <Grid Grid.Row="0" Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" 
+                                   Text="設定檔列表" 
+                                   FontSize="16" 
+                                   FontWeight="SemiBold" 
+                                   VerticalAlignment="Center"/>
+
+                        <TextBox x:Name="SearchTextBox" 
+                                 Grid.Column="1" 
+                                 Width="200" 
+                                 Padding="8" 
+                                 BorderBrush="#D1D5DB"
+                                 BorderThickness="1"
+                                 Background="#F9FAFB"
+                                 Text=""
+                                 TextChanged="SearchTextBox_TextChanged">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="">
+                                            <Setter Property="Background" Value="#F9FAFB"/>
+                                        </Trigger>
+                                        <Trigger Property="IsFocused" Value="True">
+                                            <Setter Property="Background" Value="White"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                    </Grid>
+
+                    <!-- 設定檔列表 -->
+                    <ListBox x:Name="ProfilesListBox" 
+                             Grid.Row="1"
+                             SelectionChanged="ProfilesListBox_SelectionChanged"
+                             BorderThickness="0"
+                             Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="White" 
+                                        BorderBrush="#E5E7EB" 
+                                        BorderThickness="1" 
+                                        CornerRadius="6" 
+                                        Padding="15" 
+                                        Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding ProfileName}" 
+                                                       FontWeight="SemiBold" 
+                                                       FontSize="14"/>
+                                            <TextBlock Text="{Binding BackendService}" 
+                                                       Foreground="#6B7280" 
+                                                       FontSize="12" 
+                                                       Margin="0,2,0,0"/>
+                                            <TextBlock Text="{Binding Description}" 
+                                                       Foreground="#9CA3AF" 
+                                                       FontSize="11" 
+                                                       Margin="0,2,0,0"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                                            <TextBlock Text="{Binding UpdatedAt, StringFormat='{}{0:MM/dd HH:mm}'}" 
+                                                       Foreground="#9CA3AF" 
+                                                       FontSize="10" 
+                                                       HorizontalAlignment="Right"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <!-- 操作面板 -->
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="操作" 
+                               FontSize="16" 
+                               FontWeight="SemiBold" 
+                               Margin="0,0,0,20"/>
+
+                    <!-- 新增設定檔 -->
+                    <Button x:Name="CreateProfileButton" 
+                            Content="💾 儲存當前設定" 
+                            Style="{StaticResource SuccessButtonStyle}"
+                            Margin="0,0,0,10"
+                            Click="CreateProfile_Click"/>
+
+                    <!-- 載入設定檔 -->
+                    <Button x:Name="LoadProfileButton" 
+                            Content="📂 載入設定檔" 
+                            Style="{StaticResource ModernButtonStyle}"
+                            Margin="0,0,0,10"
+                            IsEnabled="False"
+                            Click="LoadProfile_Click"/>
+
+                    <!-- 編輯設定檔 -->
+                    <Button x:Name="EditProfileButton" 
+                            Content="✏️ 編輯設定檔" 
+                            Style="{StaticResource WarningButtonStyle}"
+                            Margin="0,0,0,10"
+                            IsEnabled="False"
+                            Click="EditProfile_Click"/>
+
+                    <!-- 刪除設定檔 -->
+                    <Button x:Name="DeleteProfileButton" 
+                            Content="🗑️ 刪除設定檔" 
+                            Style="{StaticResource DangerButtonStyle}"
+                            Margin="0,0,0,20"
+                            IsEnabled="False"
+                            Click="DeleteProfile_Click"/>
+
+                    <Separator Margin="0,0,0,20"/>
+
+                    <!-- 匯入匯出 -->
+                    <TextBlock Text="匯入/匯出" 
+                               FontSize="14" 
+                               FontWeight="SemiBold" 
+                               Margin="0,0,0,10"/>
+
+                    <Button x:Name="ImportProfilesButton" 
+                            Content="📥 匯入設定檔" 
+                            Style="{StaticResource ModernButtonStyle}"
+                            Margin="0,0,0,10"
+                            Click="ImportProfiles_Click"/>
+
+                    <Button x:Name="ExportProfilesButton" 
+                            Content="📤 匯出設定檔" 
+                            Style="{StaticResource ModernButtonStyle}"
+                            Margin="0,0,0,10"
+                            Click="ExportProfiles_Click"/>
+
+                    <Button x:Name="ExportToFolderButton" 
+                            Content="📁 選擇資料夾匯出" 
+                            Style="{StaticResource ModernButtonStyle}"
+                            Background="#8B5CF6"
+                            Margin="0,0,0,10"
+                            Click="ExportToFolder_Click"/>
+
+                    <Button x:Name="ExportSelectedButton" 
+                            Content="📤 匯出選中" 
+                            Style="{StaticResource WarningButtonStyle}"
+                            Margin="0,0,0,10"
+                            IsEnabled="False"
+                            Click="ExportSelected_Click"/>
+
+                    <Button x:Name="QuickExportButton" 
+                            Content="⚡ 快速匯出全部" 
+                            Style="{StaticResource ModernButtonStyle}"
+                            Margin="0,0,0,10"
+                            Click="QuickExportAll_Click"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 狀態列 -->
+        <Border Grid.Row="3" 
+                Background="#F3F4F6" 
+                CornerRadius="6" 
+                Padding="15,10" 
+                Margin="0,20,0,0">
+            <TextBlock x:Name="StatusText" 
+                       Text="就緒" 
+                       FontSize="12" 
+                       Foreground="#6B7280"/>
+        </Border>
+    </Grid>
+</Window>

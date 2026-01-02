@@ -17,6 +17,75 @@ namespace wpfkiro20260101
         Sanity
     }
 
+    // 服務設定介面
+    public interface IServiceSettings
+    {
+        string ApiUrl { get; set; }
+        string ProjectId { get; set; }
+        string ApiKey { get; set; }
+    }
+
+    // 各服務的獨立設定類別
+    public class AppwriteSettings : IServiceSettings
+    {
+        public string ApiUrl { get; set; } = "https://fra.cloud.appwrite.io/v1";
+        public string ProjectId { get; set; } = "69565017002c03b93af8";
+        public string ApiKey { get; set; } = "standard_bb04794eeaa3f7b9a993866f231d1b2146b595f3645c31fd61c17cd5a684b59440aa85f9fea44573f859dd33d607144167f13016be9de4004f60f9823d1adf63528ca120acceb77c53c1810b6fa811f65976cb5e3ac0d1c30a5824ce24e9884b8301708ae9339f4774fabd826273f99126f3c68f6d3520de50304226136bb1c5";
+        public string DatabaseId { get; set; } = "69565a2800074e1d96c5";
+        public string BucketId { get; set; } = "6956530b0018bc91e180";
+        public string FoodCollectionId { get; set; } = "food";
+        public string SubscriptionCollectionId { get; set; } = "subscription";
+    }
+
+    public class SupabaseSettings : IServiceSettings
+    {
+        public string ApiUrl { get; set; } = "https://lobezwpworbfktlkxuyo.supabase.co";
+        public string ProjectId { get; set; } = "lobezwpworbfktlkxuyo";
+        public string ApiKey { get; set; } = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvYmV6d3B3b3JiZmt0bGt4dXlvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzI1ODU5MSwiZXhwIjoyMDgyODM0NTkxfQ.tFcCP7kvcfV1CznhIHXBF0TenGlYD1XRlAWdCYYEnlc";
+    }
+
+    public class NHostSettings : IServiceSettings
+    {
+        public string ApiUrl { get; set; } = "https://your-project.nhost.run";
+        public string ProjectId { get; set; } = "your-project-id";
+        public string ApiKey { get; set; } = "";
+    }
+
+    public class ContentfulSettings : IServiceSettings
+    {
+        public string ApiUrl { get; set; } = "https://api.contentful.com";
+        public string ProjectId { get; set; } = "your-space-id";
+        public string ApiKey { get; set; } = "";
+    }
+
+    public class Back4AppSettings : IServiceSettings
+    {
+        public string ApiUrl { get; set; } = "https://parseapi.back4app.com";
+        public string ProjectId { get; set; } = "your-app-id";
+        public string ApiKey { get; set; } = "";
+    }
+
+    public class MySQLSettings : IServiceSettings
+    {
+        public string ApiUrl { get; set; } = "localhost:3306";
+        public string ProjectId { get; set; } = "your-database-name";
+        public string ApiKey { get; set; } = "";
+    }
+
+    public class StrapiSettings : IServiceSettings
+    {
+        public string ApiUrl { get; set; } = "http://localhost:1337";
+        public string ProjectId { get; set; } = "your-strapi-project";
+        public string ApiKey { get; set; } = "your-strapi-api-token";
+    }
+
+    public class SanitySettings : IServiceSettings
+    {
+        public string ApiUrl { get; set; } = "https://your-project.api.sanity.io";
+        public string ProjectId { get; set; } = "your-sanity-project-id";
+        public string ApiKey { get; set; } = "your-sanity-token";
+    }
+
     public class AppSettings
     {
         private static AppSettings? _instance;
@@ -46,18 +115,81 @@ namespace wpfkiro20260101
             }
         }
 
+        // 當前選擇的後端服務
         public BackendServiceType BackendService { get; set; } = BackendServiceType.Appwrite;
-        public string ApiUrl { get; set; } = Defaults.Appwrite.ApiUrl;
-        public string ProjectId { get; set; } = Defaults.Appwrite.ProjectId;
-        public string ApiKey { get; set; } = Defaults.Appwrite.ApiKey;
         
-        // Appwrite 專用設定
-        public string DatabaseId { get; set; } = Defaults.Appwrite.DatabaseId;
-        public string BucketId { get; set; } = Defaults.Appwrite.BucketId;
-        public string FoodCollectionId { get; set; } = Defaults.Appwrite.FoodCollectionId;
-        public string SubscriptionCollectionId { get; set; } = Defaults.Appwrite.SubscriptionCollectionId;
+        // 各服務的獨立設定
+        public AppwriteSettings Appwrite { get; set; } = new AppwriteSettings();
+        public SupabaseSettings Supabase { get; set; } = new SupabaseSettings();
+        public NHostSettings NHost { get; set; } = new NHostSettings();
+        public ContentfulSettings Contentful { get; set; } = new ContentfulSettings();
+        public Back4AppSettings Back4App { get; set; } = new Back4AppSettings();
+        public MySQLSettings MySQL { get; set; } = new MySQLSettings();
+        public StrapiSettings Strapi { get; set; } = new StrapiSettings();
+        public SanitySettings Sanity { get; set; } = new SanitySettings();
 
-        // 預設設定值
+        // 向後相容的屬性 - 返回當前選擇服務的設定
+        public string ApiUrl 
+        { 
+            get => GetCurrentServiceSettings().ApiUrl;
+            set => GetCurrentServiceSettings().ApiUrl = value;
+        }
+        
+        public string ProjectId 
+        { 
+            get => GetCurrentServiceSettings().ProjectId;
+            set => GetCurrentServiceSettings().ProjectId = value;
+        }
+        
+        public string ApiKey 
+        { 
+            get => GetCurrentServiceSettings().ApiKey;
+            set => GetCurrentServiceSettings().ApiKey = value;
+        }
+        
+        // Appwrite 專用設定（向後相容）
+        public string DatabaseId 
+        { 
+            get => Appwrite.DatabaseId;
+            set => Appwrite.DatabaseId = value;
+        }
+        
+        public string BucketId 
+        { 
+            get => Appwrite.BucketId;
+            set => Appwrite.BucketId = value;
+        }
+        
+        public string FoodCollectionId 
+        { 
+            get => Appwrite.FoodCollectionId;
+            set => Appwrite.FoodCollectionId = value;
+        }
+        
+        public string SubscriptionCollectionId 
+        { 
+            get => Appwrite.SubscriptionCollectionId;
+            set => Appwrite.SubscriptionCollectionId = value;
+        }
+
+        // 獲取當前服務的設定物件
+        public IServiceSettings GetCurrentServiceSettings()
+        {
+            return BackendService switch
+            {
+                BackendServiceType.Appwrite => Appwrite,
+                BackendServiceType.Supabase => Supabase,
+                BackendServiceType.NHost => NHost,
+                BackendServiceType.Contentful => Contentful,
+                BackendServiceType.Back4App => Back4App,
+                BackendServiceType.MySQL => MySQL,
+                BackendServiceType.Strapi => Strapi,
+                BackendServiceType.Sanity => Sanity,
+                _ => Appwrite
+            };
+        }
+
+        // 預設設定值（向後相容）
         public static class Defaults
         {
             public static class Appwrite
@@ -205,14 +337,14 @@ namespace wpfkiro20260101
         {
             return BackendService switch
             {
-                BackendServiceType.Appwrite => Defaults.Appwrite.ApiUrl,
-                BackendServiceType.Supabase => Defaults.Supabase.ApiUrl,
-                BackendServiceType.NHost => Defaults.NHost.ApiUrl,
-                BackendServiceType.Contentful => Defaults.Contentful.ApiUrl,
-                BackendServiceType.Back4App => Defaults.Back4App.ApiUrl,
-                BackendServiceType.MySQL => Defaults.MySQL.ApiUrl,
-                BackendServiceType.Strapi => Defaults.Strapi.ApiUrl,
-                BackendServiceType.Sanity => Defaults.Sanity.ApiUrl,
+                BackendServiceType.Appwrite => new AppwriteSettings().ApiUrl,
+                BackendServiceType.Supabase => new SupabaseSettings().ApiUrl,
+                BackendServiceType.NHost => new NHostSettings().ApiUrl,
+                BackendServiceType.Contentful => new ContentfulSettings().ApiUrl,
+                BackendServiceType.Back4App => new Back4AppSettings().ApiUrl,
+                BackendServiceType.MySQL => new MySQLSettings().ApiUrl,
+                BackendServiceType.Strapi => new StrapiSettings().ApiUrl,
+                BackendServiceType.Sanity => new SanitySettings().ApiUrl,
                 _ => ""
             };
         }
@@ -221,14 +353,14 @@ namespace wpfkiro20260101
         {
             return BackendService switch
             {
-                BackendServiceType.Appwrite => Defaults.Appwrite.ProjectId,
-                BackendServiceType.Supabase => Defaults.Supabase.ProjectId,
-                BackendServiceType.NHost => Defaults.NHost.ProjectId,
-                BackendServiceType.Contentful => Defaults.Contentful.ProjectId,
-                BackendServiceType.Back4App => Defaults.Back4App.ProjectId,
-                BackendServiceType.MySQL => Defaults.MySQL.ProjectId,
-                BackendServiceType.Strapi => Defaults.Strapi.ProjectId,
-                BackendServiceType.Sanity => Defaults.Sanity.ProjectId,
+                BackendServiceType.Appwrite => new AppwriteSettings().ProjectId,
+                BackendServiceType.Supabase => new SupabaseSettings().ProjectId,
+                BackendServiceType.NHost => new NHostSettings().ProjectId,
+                BackendServiceType.Contentful => new ContentfulSettings().ProjectId,
+                BackendServiceType.Back4App => new Back4AppSettings().ProjectId,
+                BackendServiceType.MySQL => new MySQLSettings().ProjectId,
+                BackendServiceType.Strapi => new StrapiSettings().ProjectId,
+                BackendServiceType.Sanity => new SanitySettings().ProjectId,
                 _ => ""
             };
         }
@@ -237,10 +369,10 @@ namespace wpfkiro20260101
         {
             return BackendService switch
             {
-                BackendServiceType.Appwrite => Defaults.Appwrite.ApiKey,
-                BackendServiceType.Supabase => Defaults.Supabase.ApiKey,
-                BackendServiceType.Strapi => Defaults.Strapi.ApiKey,
-                BackendServiceType.Sanity => Defaults.Sanity.ApiKey,
+                BackendServiceType.Appwrite => new AppwriteSettings().ApiKey,
+                BackendServiceType.Supabase => new SupabaseSettings().ApiKey,
+                BackendServiceType.Strapi => new StrapiSettings().ApiKey,
+                BackendServiceType.Sanity => new SanitySettings().ApiKey,
                 _ => ""
             };
         }

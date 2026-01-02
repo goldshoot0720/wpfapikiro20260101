@@ -992,5 +992,251 @@ namespace wpfkiro20260101
                 throw new Exception($"保存文件時發生錯誤：{ex.Message}");
             }
         }
+
+        // 設定檔匯出功能
+        private async void QuickExportProfiles_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                QuickExportProfilesButton.IsEnabled = false;
+                QuickExportProfilesButton.Content = "匯出中...";
+
+                var profileService = SettingsProfileService.Instance;
+                var profileCount = profileService.GetProfileCount();
+
+                if (profileCount == 0)
+                {
+                    ShowStatusMessage("沒有設定檔可以匯出", Brushes.Orange);
+                    return;
+                }
+
+                // 讓用戶選擇保存位置
+                var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Title = "選擇設定檔匯出位置",
+                    Filter = "JSON 檔案 (*.json)|*.json|所有檔案 (*.*)|*.*",
+                    DefaultExt = "json",
+                    FileName = $"設定檔備份_{DateTime.Now:yyyyMMdd_HHmmss}.json",
+                    InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    var result = await profileService.ExportProfilesAsync();
+                    if (result.Success)
+                    {
+                        await File.WriteAllTextAsync(saveFileDialog.FileName, result.Data);
+                        var fileInfo = new FileInfo(saveFileDialog.FileName);
+                        ShowStatusMessage($"成功匯出 {profileCount} 筆設定檔", Brushes.Green);
+                        
+                        var result2 = MessageBox.Show(
+                            $"成功匯出 {profileCount} 筆設定檔到：\n{fileInfo.DirectoryName}\n檔案：{fileInfo.Name}\n\n是否要開啟檔案位置？",
+                            "匯出成功",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Information);
+
+                        if (result2 == MessageBoxResult.Yes)
+                        {
+                            System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{saveFileDialog.FileName}\"");
+                        }
+                    }
+                    else
+                    {
+                        ShowStatusMessage($"匯出失敗：{result.ErrorMessage}", Brushes.Red);
+                    }
+                }
+                else
+                {
+                    ShowStatusMessage("已取消匯出", Brushes.Gray);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"匯出時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                QuickExportProfilesButton.IsEnabled = true;
+                QuickExportProfilesButton.Content = "📤 快速匯出";
+            }
+        }
+
+        private async void ExportToFolder_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ExportToFolderButton.IsEnabled = false;
+                ExportToFolderButton.Content = "選擇中...";
+
+                var profileService = SettingsProfileService.Instance;
+                var profileCount = profileService.GetProfileCount();
+
+                if (profileCount == 0)
+                {
+                    ShowStatusMessage("沒有設定檔可以匯出", Brushes.Orange);
+                    return;
+                }
+
+                var selectedFolder = FolderSelectDialog.SelectFolderWithMessage("選擇設定檔匯出資料夾");
+
+                if (!string.IsNullOrEmpty(selectedFolder))
+                {
+                    ExportToFolderButton.Content = "匯出中...";
+                    ShowStatusMessage("正在匯出設定檔...", Brushes.Blue);
+                    
+                    var result = await profileService.ExportProfilesAsync();
+                    if (result.Success)
+                    {
+                        var fileName = $"設定檔備份_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+                        var filePath = Path.Combine(selectedFolder, fileName);
+                        
+                        await File.WriteAllTextAsync(filePath, result.Data);
+                        ShowStatusMessage($"成功匯出 {profileCount} 筆設定檔到指定資料夾", Brushes.Green);
+                        
+                        var result2 = MessageBox.Show(
+                            $"成功匯出 {profileCount} 筆設定檔到：\n{selectedFolder}\n檔案：{fileName}\n\n是否要開啟檔案位置？",
+                            "匯出成功",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Information);
+
+                        if (result2 == MessageBoxResult.Yes)
+                        {
+                            System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{filePath}\"");
+                        }
+                    }
+                    else
+                    {
+                        ShowStatusMessage($"匯出失敗：{result.ErrorMessage}", Brushes.Red);
+                    }
+                }
+                else
+                {
+                    ShowStatusMessage("已取消匯出", Brushes.Gray);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"匯出到資料夾時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                ExportToFolderButton.IsEnabled = true;
+                ExportToFolderButton.Content = "📁 選擇資料夾";
+            }
+        }
+
+        private async void TestExport_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TestExportButton.IsEnabled = false;
+                TestExportButton.Content = "測試中...";
+                ShowStatusMessage("正在執行匯出功能測試...", Brushes.Blue);
+
+                await TestProfileExport.TestExportFunctionality();
+                
+                ShowStatusMessage("匯出功能測試完成，請查看調試輸出", Brushes.Green);
+                TestProfileExport.ShowExportGuide();
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"測試時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                TestExportButton.IsEnabled = true;
+                TestExportButton.Content = "🧪 測試匯出";
+            }
+        }
+
+        // 缺少的事件處理方法
+        private void BackendServiceHeader_Click(object sender, RoutedEventArgs e)
+        {
+            // 切換後端服務設定的顯示/隱藏
+            try
+            {
+                var expander = sender as System.Windows.Controls.Expander;
+                if (expander != null)
+                {
+                    // 可以在這裡添加展開/收合的邏輯
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"切換後端服務設定顯示狀態時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+        }
+
+        private void ConnectionSettingsHeader_Click(object sender, RoutedEventArgs e)
+        {
+            // 切換連線設定的顯示/隱藏
+            try
+            {
+                var expander = sender as System.Windows.Controls.Expander;
+                if (expander != null)
+                {
+                    // 可以在這裡添加展開/收合的邏輯
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"切換連線設定顯示狀態時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+        }
+
+        private void ManageProfiles_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var profileWindow = new SettingsProfileWindow
+                {
+                    Owner = Window.GetWindow(this)
+                };
+                
+                profileWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"開啟設定檔管理視窗時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+        }
+
+        private void ShowSettingsFile_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "wpfkiro20260101", "settings.json");
+                if (File.Exists(settingsPath))
+                {
+                    System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{settingsPath}\"");
+                }
+                else
+                {
+                    ShowStatusMessage("設定檔案不存在", Brushes.Orange);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"開啟設定檔案位置時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+        }
+
+        private void RefreshSettings_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 強制重新載入設定
+                AppSettings.ReloadSettings();
+                
+                // 重新載入界面
+                LoadSettings();
+                
+                ShowStatusMessage("設定已刷新！", Brushes.Green);
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"刷新設定時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+        }
     }
 }

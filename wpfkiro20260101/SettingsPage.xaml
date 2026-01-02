@@ -74,95 +74,128 @@
             <!-- 後端服務設定 -->
             <Border Style="{StaticResource SettingsCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="後端服務設定" Style="{StaticResource SectionTitleStyle}"/>
-                    <TextBlock Text="選擇您要使用的後端服務提供商" 
-                               FontSize="14" 
-                               Foreground="#6B7280" 
-                               Margin="0,0,0,20"/>
+                    <!-- 可點擊的標題區域 -->
+                    <Border Background="Transparent" 
+                            Cursor="Hand" 
+                            MouseLeftButtonDown="BackendServiceHeader_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="BackendExpandIcon" 
+                                       Text="▼" 
+                                       FontSize="14" 
+                                       Foreground="#6B7280" 
+                                       Margin="0,0,10,0" 
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="後端服務設定" Style="{StaticResource SectionTitleStyle}" Margin="0"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- 可折疊的後端服務設定內容 -->
+                    <StackPanel x:Name="BackendServiceContent" Margin="0,10,0,0">
+                        <TextBlock Text="選擇您要使用的後端服務提供商" 
+                                   FontSize="14" 
+                                   Foreground="#6B7280" 
+                                   Margin="0,0,0,20"/>
 
-                    <!-- Appwrite 選項 -->
-                    <StackPanel Orientation="Vertical" Margin="0,0,0,15">
-                        <RadioButton x:Name="AppwriteOption" 
+                        <!-- Appwrite 選項 -->
+                        <StackPanel Orientation="Vertical" Margin="0,0,0,15">
+                            <RadioButton x:Name="AppwriteOption" 
+                                         Checked="BackendOption_Checked"
+                                         Content="Appwrite"
+                                         FontWeight="Bold"
+                                         Margin="0,0,0,5"/>
+                            <TextBlock Text="• 可使用 2GB 容量" 
+                                       Foreground="Green" 
+                                       FontSize="12" 
+                                       Margin="20,0,0,2"/>
+                            <TextBlock Text="• 可使用 5GB 流量" 
+                                       Foreground="Green" 
+                                       FontSize="12" 
+                                       Margin="20,0,0,0"/>
+                        </StackPanel>
+
+                        <!-- Supabase 選項 -->
+                        <StackPanel Orientation="Vertical" Margin="0,0,0,15">
+                            <RadioButton x:Name="SupabaseOption" 
+                                         Checked="BackendOption_Checked"
+                                         Content="Supabase"
+                                         FontWeight="Bold"
+                                         Margin="0,0,0,5"/>
+                            <TextBlock Text="• 可使用 1GB 容量" 
+                                       Foreground="Green" 
+                                       FontSize="12" 
+                                       Margin="20,0,0,2"/>
+                            <TextBlock Text="• 可使用 5GB 流量" 
+                                       Foreground="Green" 
+                                       FontSize="12" 
+                                       Margin="20,0,0,0"/>
+                        </StackPanel>
+
+                        <!-- NHost 選項 -->
+                        <RadioButton x:Name="NHostOption" 
                                      Checked="BackendOption_Checked"
-                                     Content="Appwrite"
-                                     FontWeight="Bold"
-                                     Margin="0,0,0,5"/>
-                        <TextBlock Text="• 可使用 2GB 容量" 
-                                   Foreground="Green" 
-                                   FontSize="12" 
-                                   Margin="20,0,0,2"/>
-                        <TextBlock Text="• 可使用 5GB 流量" 
-                                   Foreground="Green" 
-                                   FontSize="12" 
-                                   Margin="20,0,0,0"/>
-                    </StackPanel>
+                                     Content="NHost"
+                                     Margin="0,0,0,10"/>
 
-                    <!-- Supabase 選項 -->
-                    <StackPanel Orientation="Vertical" Margin="0,0,0,15">
-                        <RadioButton x:Name="SupabaseOption" 
+                        <!-- Contentful 選項 -->
+                        <RadioButton x:Name="ContentfulOption" 
                                      Checked="BackendOption_Checked"
-                                     Content="Supabase"
-                                     FontWeight="Bold"
-                                     Margin="0,0,0,5"/>
-                        <TextBlock Text="• 可使用 1GB 容量" 
-                                   Foreground="Green" 
-                                   FontSize="12" 
-                                   Margin="20,0,0,2"/>
-                        <TextBlock Text="• 可使用 5GB 流量" 
-                                   Foreground="Green" 
-                                   FontSize="12" 
-                                   Margin="20,0,0,0"/>
+                                     Content="Contentful"
+                                     Margin="0,0,0,10"/>
+
+                        <!-- Back4App 選項 -->
+                        <RadioButton x:Name="Back4AppOption" 
+                                     Checked="BackendOption_Checked"
+                                     Content="Back4App"
+                                     Margin="0,0,0,10"/>
+
+                        <!-- MySQL 選項 -->
+                        <RadioButton x:Name="MySQLOption" 
+                                     Checked="BackendOption_Checked"
+                                     Content="MySQL"
+                                     Margin="0,0,0,10"/>
+
+                        <!-- Strapi 選項 -->
+                        <RadioButton x:Name="StrapiOption" 
+                                     Checked="BackendOption_Checked"
+                                     Content="Strapi"
+                                     Margin="0,0,0,10"/>
+
+                        <!-- Sanity 選項 -->
+                        <RadioButton x:Name="SanityOption" 
+                                     Checked="BackendOption_Checked"
+                                     Content="Sanity"
+                                     Margin="0,0,0,10"/>
                     </StackPanel>
-
-                    <!-- NHost 選項 -->
-                    <RadioButton x:Name="NHostOption" 
-                                 Checked="BackendOption_Checked"
-                                 Content="NHost"
-                                 Margin="0,0,0,10"/>
-
-                    <!-- Contentful 選項 -->
-                    <RadioButton x:Name="ContentfulOption" 
-                                 Checked="BackendOption_Checked"
-                                 Content="Contentful"
-                                 Margin="0,0,0,10"/>
-
-                    <!-- Back4App 選項 -->
-                    <RadioButton x:Name="Back4AppOption" 
-                                 Checked="BackendOption_Checked"
-                                 Content="Back4App"
-                                 Margin="0,0,0,10"/>
-
-                    <!-- MySQL 選項 -->
-                    <RadioButton x:Name="MySQLOption" 
-                                 Checked="BackendOption_Checked"
-                                 Content="MySQL"
-                                 Margin="0,0,0,10"/>
-
-                    <!-- Strapi 選項 -->
-                    <RadioButton x:Name="StrapiOption" 
-                                 Checked="BackendOption_Checked"
-                                 Content="Strapi"
-                                 Margin="0,0,0,10"/>
-
-                    <!-- Sanity 選項 -->
-                    <RadioButton x:Name="SanityOption" 
-                                 Checked="BackendOption_Checked"
-                                 Content="Sanity"
-                                 Margin="0,0,0,10"/>
                 </StackPanel>
             </Border>
 
             <!-- 連線設定 -->
             <Border Style="{StaticResource SettingsCardStyle}">
                 <StackPanel>
-                    <TextBlock Text="連線設定" Style="{StaticResource SectionTitleStyle}"/>
+                    <!-- 可點擊的標題區域 -->
+                    <Border Background="Transparent" 
+                            Cursor="Hand" 
+                            MouseLeftButtonDown="ConnectionSettingsHeader_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="ConnectionExpandIcon" 
+                                       Text="▼" 
+                                       FontSize="14" 
+                                       Foreground="#6B7280" 
+                                       Margin="0,0,10,0" 
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="連線設定" Style="{StaticResource SectionTitleStyle}" Margin="0"/>
+                        </StackPanel>
+                    </Border>
                     
-                    <Grid>
+                    <!-- 可折疊的連線設定內容 -->
+                    <Grid x:Name="ConnectionSettingsContent" Margin="0,10,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -232,16 +265,50 @@
                                  BorderBrush="#D1D5DB"
                                  BorderThickness="1"
                                  Background="#F9FAFB"
+                                   Visibility="Collapsed"/>
+
+                        <!-- Food Collection ID (Appwrite 專用) -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" 
+                                   x:Name="FoodCollectionIdLabel"
+                                   Text="Food Table ID:" 
+                                   FontWeight="Bold" 
+                                   Margin="0,0,15,10" 
+                                   VerticalAlignment="Center"
+                                   Visibility="Collapsed"/>
+                        <TextBox x:Name="FoodCollectionIdTextBox" 
+                                 Grid.Row="4" Grid.Column="1" 
+                                 Padding="10" 
+                                 Margin="0,0,0,10"
+                                 BorderBrush="#D1D5DB"
+                                 BorderThickness="1"
+                                 Background="#F9FAFB"
+                                 Visibility="Collapsed"/>
+
+                        <!-- Subscription Collection ID (Appwrite 專用) -->
+                        <TextBlock Grid.Row="5" Grid.Column="0" 
+                                   x:Name="SubscriptionCollectionIdLabel"
+                                   Text="Subscription Table ID:" 
+                                   FontWeight="Bold" 
+                                   Margin="0,0,15,10" 
+                                   VerticalAlignment="Center"
+                                   Visibility="Collapsed"/>
+                        <TextBox x:Name="SubscriptionCollectionIdTextBox" 
+                                 Grid.Row="5" Grid.Column="1" 
+                                 Padding="10" 
+                                 Margin="0,0,0,10"
+                                 BorderBrush="#D1D5DB"
+                                 BorderThickness="1"
+                                 Background="#F9FAFB"
                                  Visibility="Collapsed"/>
 
                         <!-- API Key -->
-                        <TextBlock Grid.Row="4" Grid.Column="0" 
+                        <TextBlock Grid.Row="6" Grid.Column="0" 
                                    Text="API Key:" 
                                    FontWeight="Bold" 
                                    Margin="0,0,15,10" 
                                    VerticalAlignment="Center"/>
                         <PasswordBox x:Name="ApiKeyPasswordBox" 
-                                     Grid.Row="4" Grid.Column="1" 
+                                     Grid.Row="6" Grid.Column="1" 
                                      Padding="10" 
                                      Margin="0,0,0,10"
                                      BorderBrush="#D1D5DB"
@@ -276,8 +343,67 @@
                 </StackPanel>
             </Border>
 
-                    <!-- 操作按鈕 -->
+                    <!-- 設定檔管理區域 -->
+            <Border Style="{StaticResource SettingsCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="設定檔管理" Style="{StaticResource SectionTitleStyle}"/>
+                    <TextBlock Text="儲存和管理多個設定檔，支援最多100筆設定檔的儲存與載入" 
+                               FontSize="14" 
+                               Foreground="#6B7280" 
+                               Margin="0,0,0,20"/>
+                    
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="ManageProfilesButton" 
+                                Content="📁 管理設定檔" 
+                                Style="{StaticResource SaveButtonStyle}"
+                                Background="#8B5CF6"
+                                Margin="0,0,15,0"
+                                Click="ManageProfiles_Click"/>
+                        
+                        <Button x:Name="QuickExportProfilesButton" 
+                                Content="📤 快速匯出" 
+                                Style="{StaticResource SaveButtonStyle}"
+                                Background="#10B981"
+                                Margin="0,0,15,0"
+                                Click="QuickExportProfiles_Click"/>
+                        
+                        <Button x:Name="ExportToFolderButton" 
+                                Content="📁 選擇資料夾" 
+                                Style="{StaticResource SaveButtonStyle}"
+                                Background="#8B5CF6"
+                                Margin="0,0,15,0"
+                                Click="ExportToFolder_Click"/>
+                        
+                        <Button x:Name="TestExportButton" 
+                                Content="🧪 測試匯出" 
+                                Style="{StaticResource SaveButtonStyle}"
+                                Background="#F59E0B"
+                                Margin="0,0,15,0"
+                                Click="TestExport_Click"/>
+                        
+                        <TextBlock x:Name="ProfileCountInfo" 
+                                   Text="載入中..." 
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="#6B7280"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 操作按鈕 -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="ShowSettingsFileButton" 
+                        Content="📁 顯示設定檔" 
+                        Style="{StaticResource SaveButtonStyle}"
+                        Background="#6B7280"
+                        Margin="0,0,10,0"
+                        Click="ShowSettingsFile_Click"/>
+                <Button x:Name="RefreshSettingsButton" 
+                        Content="刷新設定" 
+                        Style="{StaticResource SaveButtonStyle}"
+                        Background="#F59E0B"
+                        Margin="0,0,10,0"
+                        Click="RefreshSettings_Click"/>
                 <Button x:Name="TestSettingsButton" 
                         Content="測試設定" 
                         Style="{StaticResource SaveButtonStyle}"

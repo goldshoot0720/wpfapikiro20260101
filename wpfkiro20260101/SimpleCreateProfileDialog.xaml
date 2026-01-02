@@ -1,0 +1,89 @@
+<Window x:Class="wpfkiro20260101.SimpleCreateProfileDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="新增設定檔" Height="300" Width="450"
+        WindowStartupLocation="CenterOwner"
+        Background="White"
+        ResizeMode="NoResize">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- 主要內容 -->
+        <StackPanel Grid.Row="0" Margin="30">
+            <!-- 標題 -->
+            <TextBlock Text="新增設定檔" 
+                       FontSize="18" 
+                       FontWeight="Bold" 
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,20"/>
+
+            <!-- 設定檔名稱 -->
+            <TextBlock Text="設定檔名稱 *" 
+                       FontWeight="Bold" 
+                       Margin="0,0,0,5"/>
+            <TextBox x:Name="ProfileNameTextBox" 
+                     Height="30"
+                     Padding="8"
+                     FontSize="14"
+                     MaxLength="100"/>
+            
+            <TextBlock x:Name="NameValidationText" 
+                       Foreground="Red" 
+                       FontSize="12" 
+                       Margin="0,5,0,15" 
+                       Visibility="Collapsed"/>
+
+            <!-- 描述 -->
+            <TextBlock Text="描述 (選填)" 
+                       FontWeight="Bold" 
+                       Margin="0,0,0,5"/>
+            <TextBox x:Name="DescriptionTextBox" 
+                     Height="60"
+                     Padding="8"
+                     FontSize="14"
+                     MaxLength="500"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"/>
+
+            <!-- 當前設定資訊 -->
+            <TextBlock Text="將儲存當前的後端服務設定" 
+                       FontSize="12" 
+                       Foreground="Gray"
+                       Margin="0,15,0,0"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+        
+        <!-- 按鈕區域 -->
+        <Border Grid.Row="1" 
+                Background="#F5F5F5" 
+                BorderBrush="#E0E0E0" 
+                BorderThickness="0,1,0,0" 
+                Padding="20,15">
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Right">
+                <Button x:Name="CancelButton" 
+                        Content="取消" 
+                        Width="80"
+                        Height="35"
+                        Margin="0,0,10,0"
+                        Background="#6B7280"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Click="Cancel_Click"/>
+                <Button x:Name="SaveButton" 
+                        Content="確定" 
+                        Width="80"
+                        Height="35"
+                        Background="#6366F1"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Click="Save_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
