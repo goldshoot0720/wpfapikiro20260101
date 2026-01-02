@@ -5,7 +5,6 @@
 CREATE TABLE IF NOT EXISTS food (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
     name TEXT,
     price BIGINT DEFAULT 0,
     photo TEXT,

@@ -909,9 +909,19 @@ namespace wpfkiro20260101
         private string GenerateFoodCsv(object[] foods)
         {
             var csv = new System.Text.StringBuilder();
+            var settings = AppSettings.Instance;
             
-            // CSV 標題行 - 根據 Appwrite 實際欄位結構
-            csv.AppendLine("$id,name,price,photo,shop,todate,photohash,$createdAt,$updatedAt");
+            // 根據當前後端服務生成正確的 CSV 標題行
+            if (settings.BackendService == BackendServiceType.Supabase)
+            {
+                // Supabase 實際表結構
+                csv.AppendLine("id,created_at,name,todate,amount,photo,price,shop,photohash");
+            }
+            else
+            {
+                // Appwrite 和其他服務的表結構
+                csv.AppendLine("$id,name,price,photo,shop,todate,photohash,$createdAt,$updatedAt");
+            }
 
             foreach (var item in foods)
             {
@@ -925,16 +935,28 @@ namespace wpfkiro20260101
                     var shop = GetPropertyValue(item, "shop", "Shop") ?? "";
                     var todateRaw = GetPropertyValue(item, "todate", "toDate", "ToDate") ?? "";
                     var photohash = GetPropertyValue(item, "photohash", "photoHash", "PhotoHash") ?? "";
-                    var createdAt = GetPropertyValue(item, "$createdAt", "createdAt", "CreatedAt") ?? "";
-                    var updatedAt = GetPropertyValue(item, "$updatedAt", "updatedAt", "UpdatedAt") ?? "";
+                    var account = GetPropertyValue(item, "account", "Account") ?? "";
+                    var createdAt = GetPropertyValue(item, "$createdAt", "createdAt", "CreatedAt", "created_at") ?? "";
+                    var updatedAt = GetPropertyValue(item, "$updatedAt", "updatedAt", "UpdatedAt", "updated_at") ?? "";
 
                     // 處理日期格式 - 確保使用英文格式
                     var todate = FormatDateForCsv(todateRaw);
                     var createdAtFormatted = FormatDateForCsv(createdAt);
                     var updatedAtFormatted = FormatDateForCsv(updatedAt);
 
-                    // 處理包含逗號的欄位，用雙引號包圍
-                    csv.AppendLine($"\"{EscapeCsvField(id)}\",\"{EscapeCsvField(name)}\",\"{price}\",\"{EscapeCsvField(photo)}\",\"{EscapeCsvField(shop)}\",\"{todate}\",\"{EscapeCsvField(photohash)}\",\"{createdAtFormatted}\",\"{updatedAtFormatted}\"");
+                    // 根據後端服務生成不同的 CSV 行
+                    if (settings.BackendService == BackendServiceType.Supabase)
+                    {
+                        // Supabase 格式：id,created_at,name,todate,amount,photo,price,shop,photohash
+                        var amount = GetPropertyValue(item, "amount", "quantity", "Quantity") ?? "1"; // 預設數量為1
+                        
+                        csv.AppendLine($"{EscapeCsvField(id)},{createdAtFormatted},{EscapeCsvField(name)},{todate},{amount},{EscapeCsvField(photo)},{price},{EscapeCsvField(shop)},{EscapeCsvField(photohash)}");
+                    }
+                    else
+                    {
+                        // Appwrite 格式：$id,name,price,photo,shop,todate,photohash,$createdAt,$updatedAt
+                        csv.AppendLine($"\"{EscapeCsvField(id)}\",\"{EscapeCsvField(name)}\",{price},\"{EscapeCsvField(photo)}\",\"{EscapeCsvField(shop)}\",\"{todate}\",\"{EscapeCsvField(photohash)}\",\"{createdAtFormatted}\",\"{updatedAtFormatted}\"");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -948,9 +970,19 @@ namespace wpfkiro20260101
         private string GenerateSubscriptionCsv(object[] subscriptions)
         {
             var csv = new System.Text.StringBuilder();
+            var settings = AppSettings.Instance;
             
-            // CSV 標題行 - 根據 Appwrite 實際欄位結構
-            csv.AppendLine("$id,name,nextdate,price,site,note,account,$createdAt,$updatedAt");
+            // 根據當前後端服務生成正確的 CSV 標題行
+            if (settings.BackendService == BackendServiceType.Supabase)
+            {
+                // Supabase 實際表結構
+                csv.AppendLine("id,created_at,name,nextdate,price,site,note,account");
+            }
+            else
+            {
+                // Appwrite 和其他服務的表結構
+                csv.AppendLine("$id,name,nextdate,price,site,note,account,$createdAt,$updatedAt");
+            }
 
             foreach (var item in subscriptions)
             {
@@ -964,16 +996,25 @@ namespace wpfkiro20260101
                     var site = GetPropertyValue(item, "site", "Site") ?? "";
                     var note = GetPropertyValue(item, "note", "Note") ?? "";
                     var account = GetPropertyValue(item, "account", "Account") ?? "";
-                    var createdAt = GetPropertyValue(item, "$createdAt", "createdAt", "CreatedAt") ?? "";
-                    var updatedAt = GetPropertyValue(item, "$updatedAt", "updatedAt", "UpdatedAt") ?? "";
+                    var createdAt = GetPropertyValue(item, "$createdAt", "createdAt", "CreatedAt", "created_at") ?? "";
+                    var updatedAt = GetPropertyValue(item, "$updatedAt", "updatedAt", "UpdatedAt", "updated_at") ?? "";
 
                     // 處理日期格式 - 確保使用英文格式
                     var nextdate = FormatDateForCsv(nextdateRaw);
                     var createdAtFormatted = FormatDateForCsv(createdAt);
                     var updatedAtFormatted = FormatDateForCsv(updatedAt);
 
-                    // 處理包含逗號的欄位，用雙引號包圍
-                    csv.AppendLine($"\"{EscapeCsvField(id)}\",\"{EscapeCsvField(name)}\",\"{nextdate}\",\"{price}\",\"{EscapeCsvField(site)}\",\"{EscapeCsvField(note)}\",\"{EscapeCsvField(account)}\",\"{createdAtFormatted}\",\"{updatedAtFormatted}\"");
+                    // 根據後端服務生成不同的 CSV 行
+                    if (settings.BackendService == BackendServiceType.Supabase)
+                    {
+                        // Supabase 格式：id,created_at,name,nextdate,price,site,note,account
+                        csv.AppendLine($"{EscapeCsvField(id)},{createdAtFormatted},{EscapeCsvField(name)},{nextdate},{price},{EscapeCsvField(site)},{EscapeCsvField(note)},{EscapeCsvField(account)}");
+                    }
+                    else
+                    {
+                        // Appwrite 格式：$id,name,nextdate,price,site,note,account,$createdAt,$updatedAt
+                        csv.AppendLine($"\"{EscapeCsvField(id)}\",\"{EscapeCsvField(name)}\",\"{nextdate}\",{price},\"{EscapeCsvField(site)}\",\"{EscapeCsvField(note)}\",\"{EscapeCsvField(account)}\",\"{createdAtFormatted}\",\"{updatedAtFormatted}\"");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1005,11 +1046,21 @@ namespace wpfkiro20260101
 
             try
             {
+                var settings = AppSettings.Instance;
+                
                 // 嘗試解析日期時間
                 if (DateTime.TryParse(dateValue, out DateTime parsedDate))
                 {
-                    // 轉換為 UTC 並使用英文格式
-                    return parsedDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture);
+                    if (settings.BackendService == BackendServiceType.Supabase)
+                    {
+                        // Supabase 格式：2026-01-02 17:09:09.823688+00
+                        return parsedDate.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ffffff+00", System.Globalization.CultureInfo.InvariantCulture);
+                    }
+                    else
+                    {
+                        // Appwrite 和其他服務格式：ISO 8601
+                        return parsedDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture);
+                    }
                 }
                 
                 // 如果無法解析，返回原始值

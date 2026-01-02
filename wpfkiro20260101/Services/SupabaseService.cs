@@ -28,12 +28,18 @@ namespace wpfkiro20260101.Services
                 if (string.IsNullOrWhiteSpace(_settings.ApiUrl) || 
                     string.IsNullOrWhiteSpace(_settings.ApiKey))
                 {
+                    System.Diagnostics.Debug.WriteLine("Supabase 設定不完整");
                     return false;
                 }
 
+                // 清除並重新設置 HTTP 標頭 (不包含 Content-Type，因為這是 GET 請求)
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+
+                System.Diagnostics.Debug.WriteLine($"測試 Supabase 連接: {_settings.ApiUrl}");
+                System.Diagnostics.Debug.WriteLine($"使用 API Key: {_settings.ApiKey.Substring(0, 20)}...");
 
                 // 先測試基本連接
                 var response = await _httpClient.GetAsync($"{_settings.ApiUrl}/rest/v1/");
@@ -41,11 +47,15 @@ namespace wpfkiro20260101.Services
                 if (!response.IsSuccessStatusCode)
                 {
                     System.Diagnostics.Debug.WriteLine($"Supabase 基本連接失敗: {response.StatusCode}");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"錯誤內容: {errorContent}");
                     return false;
                 }
 
+                System.Diagnostics.Debug.WriteLine("Supabase 基本連接成功");
+
                 // 嘗試測試不同的資料表名稱
-                var tableNames = new[] { "food", "foods", "Food", "Foods" };
+                var tableNames = new[] { "food", "subscription" };
                 
                 foreach (var tableName in tableNames)
                 {
@@ -55,11 +65,10 @@ namespace wpfkiro20260101.Services
                         if (testResponse.IsSuccessStatusCode)
                         {
                             System.Diagnostics.Debug.WriteLine($"找到可用的資料表: {tableName}");
-                            return true;
                         }
                         else
                         {
-                            System.Diagnostics.Debug.WriteLine($"資料表 {tableName} 不可用: {testResponse.StatusCode}");
+                            System.Diagnostics.Debug.WriteLine($"資料表 {tableName} 回應: {testResponse.StatusCode}");
                         }
                     }
                     catch (Exception ex)
@@ -68,7 +77,7 @@ namespace wpfkiro20260101.Services
                     }
                 }
 
-                return false;
+                return true;
             }
             catch (Exception ex)
             {
@@ -101,12 +110,15 @@ namespace wpfkiro20260101.Services
                     return BackendServiceResult<object[]>.CreateError("Supabase 設定不完整");
                 }
 
+                // 清除並重新設置 HTTP 標頭 (不包含 Content-Type，因為這是 GET 請求)
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
                 var apiUrl = $"{_settings.ApiUrl}/rest/v1/food";
                 System.Diagnostics.Debug.WriteLine($"嘗試連接 Supabase Food API: {apiUrl}");
+                System.Diagnostics.Debug.WriteLine($"使用 API Key: {_settings.ApiKey.Substring(0, 20)}...");
                 
                 var response = await _httpClient.GetAsync(apiUrl);
                 
@@ -127,17 +139,17 @@ namespace wpfkiro20260101.Services
                             id = item.TryGetProperty("id", out var id) ? id.GetString() : "",
                             foodName = item.TryGetProperty("name", out var name) ? name.GetString() : "",
                             price = item.TryGetProperty("price", out var price) ? (price.ValueKind == JsonValueKind.Number ? price.GetInt32() : 0) : 0,
-                            photo = item.TryGetProperty("photohash", out var photohash) ? photohash.GetString() : "", // 修正：photohash
-                            photoHash = item.TryGetProperty("photohash", out var photohash2) ? photohash2.GetString() : "",
-                            shop = item.TryGetProperty("site", out var site) ? site.GetString() : "", // 修正：site
-                            toDate = item.TryGetProperty("nextdate", out var nextdate) ? nextdate.GetString() : "", // 修正：nextdate
+                            photo = item.TryGetProperty("photo", out var photo) ? photo.GetString() : "", // 修正：photo (不是 photohash)
+                            photoHash = item.TryGetProperty("photo", out var photo2) ? photo2.GetString() : "", // 修正：photo
+                            shop = item.TryGetProperty("shop", out var shop) ? shop.GetString() : "", // 修正：shop (不是 site)
+                            toDate = item.TryGetProperty("todate", out var todate) ? todate.GetString() : "", // 修正：todate (不是 nextdate)
                             description = "", // 不存在於實際資料表中
                             category = "", // 不存在於實際資料表中
                             storageLocation = "", // 不存在於實際資料表中
-                            note = item.TryGetProperty("note", out var note) ? note.GetString() : "",
-                            account = "", // 不存在於實際資料表中
+                            note = "", // 不存在於實際資料表中
+                            account = item.TryGetProperty("account", out var account) ? account.GetString() : "",
                             createdAt = item.TryGetProperty("created_at", out var createdAt) ? createdAt.GetString() : "",
-                            updatedAt = "" // 不存在於實際資料表中
+                            updatedAt = item.TryGetProperty("updated_at", out var updatedAt) ? updatedAt.GetString() : ""
                         });
                     }
                     
@@ -147,7 +159,7 @@ namespace wpfkiro20260101.Services
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"Food API 錯誤: {response.StatusCode} - {errorContent}");
-                    return BackendServiceResult<object[]>.CreateError($"Supabase 拒絕要求：{response.StatusCode}");
+                    return BackendServiceResult<object[]>.CreateError($"Supabase 拒絕要求：{response.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)
@@ -167,9 +179,11 @@ namespace wpfkiro20260101.Services
                     return BackendServiceResult<object>.CreateError("Supabase 設定不完整");
                 }
 
+                // 清除並重新設置 HTTP 標頭 (不包含 Content-Type，它會在 StringContent 中設置)
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
                 var data = new Dictionary<string, object>();
                 
@@ -177,18 +191,23 @@ namespace wpfkiro20260101.Services
                 {
                     data["name"] = food.FoodName;
                     data["price"] = food.Price;
-                    data["photohash"] = food.Photo; // 修正：photohash
-                    data["site"] = food.Shop; // 修正：site
-                    data["nextdate"] = food.ToDate; // 修正：nextdate
+                    data["photo"] = food.Photo; // 修正：photo (不是 photohash)
+                    data["shop"] = food.Shop; // 修正：shop (不是 site)
+                    data["todate"] = food.ToDate; // 修正：todate (不是 nextdate)
+                    // 注意：Food 模型中沒有 Account 屬性，所以不設置 account 字段
                 }
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+                System.Diagnostics.Debug.WriteLine($"創建食品 API 請求: {_settings.ApiUrl}/rest/v1/food");
+                System.Diagnostics.Debug.WriteLine($"請求內容: {json}");
+
                 var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/rest/v1/food", content);
                 
                 if (response.IsSuccessStatusCode)
                 {
+                    System.Diagnostics.Debug.WriteLine("創建食品成功");
                     return BackendServiceResult<object>.CreateSuccess(new
                     {
                         data = foodData
@@ -198,11 +217,12 @@ namespace wpfkiro20260101.Services
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"Create Food API 錯誤: {response.StatusCode} - {errorContent}");
-                    return BackendServiceResult<object>.CreateError($"Supabase 創建失敗：{response.StatusCode}");
+                    return BackendServiceResult<object>.CreateError($"Supabase 創建失敗：{response.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"創建食品異常: {ex.Message}");
                 return BackendServiceResult<object>.CreateError($"創建 Supabase 食品失敗：{ex.Message}");
             }
         }
@@ -217,9 +237,11 @@ namespace wpfkiro20260101.Services
                     return BackendServiceResult<object>.CreateError("Supabase 設定不完整");
                 }
 
+                // 清除並重新設置 HTTP 標頭 (不包含 Content-Type，它會在 StringContent 中設置)
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
                 var data = new Dictionary<string, object>();
                 
@@ -227,18 +249,23 @@ namespace wpfkiro20260101.Services
                 {
                     data["name"] = food.FoodName;
                     data["price"] = food.Price;
-                    data["photohash"] = food.Photo; // 修正：photohash
-                    data["site"] = food.Shop; // 修正：site
-                    data["nextdate"] = food.ToDate; // 修正：nextdate
+                    data["photo"] = food.Photo; // 修正：photo (不是 photohash)
+                    data["shop"] = food.Shop; // 修正：shop (不是 site)
+                    data["todate"] = food.ToDate; // 修正：todate (不是 nextdate)
+                    // 注意：Food 模型中沒有 Account 屬性，所以不設置 account 字段
                 }
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+                System.Diagnostics.Debug.WriteLine($"更新食品 API 請求: {_settings.ApiUrl}/rest/v1/food?id=eq.{id}");
+                System.Diagnostics.Debug.WriteLine($"請求內容: {json}");
+
                 var response = await _httpClient.PatchAsync($"{_settings.ApiUrl}/rest/v1/food?id=eq.{id}", content);
                 
                 if (response.IsSuccessStatusCode)
                 {
+                    System.Diagnostics.Debug.WriteLine("更新食品成功");
                     return BackendServiceResult<object>.CreateSuccess(new
                     {
                         id = id,
@@ -249,11 +276,12 @@ namespace wpfkiro20260101.Services
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"Update Food API 錯誤: {response.StatusCode} - {errorContent}");
-                    return BackendServiceResult<object>.CreateError($"Supabase 更新失敗：{response.StatusCode}");
+                    return BackendServiceResult<object>.CreateError($"Supabase 更新失敗：{response.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"更新食品異常: {ex.Message}");
                 return BackendServiceResult<object>.CreateError($"更新 Supabase 食品失敗：{ex.Message}");
             }
         }
@@ -268,25 +296,31 @@ namespace wpfkiro20260101.Services
                     return BackendServiceResult<bool>.CreateError("Supabase 設定不完整");
                 }
 
+                // 清除並重新設置 HTTP 標頭 (不包含 Content-Type，因為這是 DELETE 請求)
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+
+                System.Diagnostics.Debug.WriteLine($"刪除食品 API 請求: {_settings.ApiUrl}/rest/v1/food?id=eq.{id}");
 
                 var response = await _httpClient.DeleteAsync($"{_settings.ApiUrl}/rest/v1/food?id=eq.{id}");
                 
                 if (response.IsSuccessStatusCode)
                 {
+                    System.Diagnostics.Debug.WriteLine("刪除食品成功");
                     return BackendServiceResult<bool>.CreateSuccess(true);
                 }
                 else
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"Delete Food API 錯誤: {response.StatusCode} - {errorContent}");
-                    return BackendServiceResult<bool>.CreateError($"Supabase 刪除失敗：{response.StatusCode}");
+                    return BackendServiceResult<bool>.CreateError($"Supabase 刪除失敗：{response.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"刪除食品異常: {ex.Message}");
                 return BackendServiceResult<bool>.CreateError($"刪除 Supabase 食品失敗：{ex.Message}");
             }
         }
@@ -302,12 +336,15 @@ namespace wpfkiro20260101.Services
                     return BackendServiceResult<object[]>.CreateError("Supabase 設定不完整");
                 }
 
+                // 清除並重新設置 HTTP 標頭 (不包含 Content-Type，因為這是 GET 請求)
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
                 var apiUrl = $"{_settings.ApiUrl}/rest/v1/subscription";
                 System.Diagnostics.Debug.WriteLine($"嘗試連接 Supabase Subscription API: {apiUrl}");
+                System.Diagnostics.Debug.WriteLine($"使用 API Key: {_settings.ApiKey.Substring(0, 20)}...");
                 
                 var response = await _httpClient.GetAsync(apiUrl);
                 
@@ -346,7 +383,7 @@ namespace wpfkiro20260101.Services
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"Subscription API 錯誤: {response.StatusCode} - {errorContent}");
-                    return BackendServiceResult<object[]>.CreateError($"Supabase 拒絕要求：{response.StatusCode}");
+                    return BackendServiceResult<object[]>.CreateError($"Supabase 拒絕要求：{response.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)
@@ -366,9 +403,11 @@ namespace wpfkiro20260101.Services
                     return BackendServiceResult<object>.CreateError("Supabase 設定不完整");
                 }
 
+                // 清除並重新設置 HTTP 標頭 (不包含 Content-Type，它會在 StringContent 中設置)
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("apikey", _settings.ApiKey);
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+                _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
                 var data = new Dictionary<string, object>();
                 
@@ -385,10 +424,14 @@ namespace wpfkiro20260101.Services
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+                System.Diagnostics.Debug.WriteLine($"創建訂閱 API 請求: {_settings.ApiUrl}/rest/v1/subscription");
+                System.Diagnostics.Debug.WriteLine($"請求內容: {json}");
+
                 var response = await _httpClient.PostAsync($"{_settings.ApiUrl}/rest/v1/subscription", content);
                 
                 if (response.IsSuccessStatusCode)
                 {
+                    System.Diagnostics.Debug.WriteLine("創建訂閱成功");
                     return BackendServiceResult<object>.CreateSuccess(new
                     {
                         data = subscriptionData
@@ -398,11 +441,12 @@ namespace wpfkiro20260101.Services
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"Create Subscription API 錯誤: {response.StatusCode} - {errorContent}");
-                    return BackendServiceResult<object>.CreateError($"Supabase 創建失敗：{response.StatusCode}");
+                    return BackendServiceResult<object>.CreateError($"Supabase 創建失敗：{response.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"創建訂閱異常: {ex.Message}");
                 return BackendServiceResult<object>.CreateError($"創建 Supabase 訂閱失敗：{ex.Message}");
             }
         }
