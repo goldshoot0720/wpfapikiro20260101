@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("wpfkiro20260101")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+976b81d868f1892033cd3e7d3c9f78854d688f74")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cbc9c3753d8ac33d3e4fed2daa2298e3e772dca2")]
 [assembly: System.Reflection.AssemblyProductAttribute("wpfkiro20260101")]
 [assembly: System.Reflection.AssemblyTitleAttribute("wpfkiro20260101")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

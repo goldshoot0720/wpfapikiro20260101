@@ -145,5 +145,11 @@ namespace wpfkiro20260101.Services
             await Task.Delay(100);
             return BackendServiceResult<bool>.CreateSuccess(true);
         }
+
+        public void Dispose()
+        {
+            // ContentfulService doesn't use disposable resources currently
+            // This is a placeholder for future resource management
+        }
     }
 }

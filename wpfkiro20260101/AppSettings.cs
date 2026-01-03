@@ -47,9 +47,9 @@ namespace wpfkiro20260101
 
     public class NHostSettings : IServiceSettings
     {
-        public string ApiUrl { get; set; } = "https://your-project.nhost.run";
-        public string ProjectId { get; set; } = "your-project-id";
-        public string ApiKey { get; set; } = "";
+        public string ApiUrl { get; set; } = "https://uxgwdiuehabbzenwtcqo.hasura.eu-central-1.nhost.run/v1/graphql";
+        public string ProjectId { get; set; } = "cu#34&yjF3Cr%fgxB#WA,4r4^c=Igcwr";
+        public string ApiKey { get; set; } = "cu#34&yjF3Cr%fgxB#WA,4r4^c=Igcwr";
     }
 
     public class ContentfulSettings : IServiceSettings
@@ -213,8 +213,9 @@ namespace wpfkiro20260101
 
             public static class NHost
             {
-                public const string ApiUrl = "https://your-project.nhost.run";
-                public const string ProjectId = "your-project-id";
+                public const string ApiUrl = "https://uxgwdiuehabbzenwtcqo.hasura.eu-central-1.nhost.run/v1/graphql";
+                public const string ProjectId = "cu#34&yjF3Cr%fgxB#WA,4r4^c=Igcwr";
+                public const string ApiKey = "cu#34&yjF3Cr%fgxB#WA,4r4^c=Igcwr";
             }
 
             public static class Contentful

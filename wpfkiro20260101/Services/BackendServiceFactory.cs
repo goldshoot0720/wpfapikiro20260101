@@ -17,7 +17,7 @@ namespace wpfkiro20260101.Services
                 BackendServiceType.Supabase => new SupabaseService(),
                 BackendServiceType.Back4App => new Back4AppService(),
                 BackendServiceType.MySQL => new MySQLService(),
-                BackendServiceType.NHost => throw new NotImplementedException("NHost 服務尚未實作"),
+                BackendServiceType.NHost => new NHostService(),
                 BackendServiceType.Contentful => throw new NotImplementedException("Contentful 服務尚未實作"),
                 _ => throw new ArgumentException($"不支援的後端服務類型：{serviceType}")
             };
@@ -65,7 +65,8 @@ namespace wpfkiro20260101.Services
                 BackendServiceType.Appwrite,
                 BackendServiceType.Supabase,
                 BackendServiceType.Back4App,
-                BackendServiceType.MySQL
+                BackendServiceType.MySQL,
+                BackendServiceType.NHost
             };
         }
 
@@ -81,7 +82,8 @@ namespace wpfkiro20260101.Services
                 BackendServiceType.Appwrite or 
                 BackendServiceType.Supabase or 
                 BackendServiceType.Back4App or 
-                BackendServiceType.MySQL => true,
+                BackendServiceType.MySQL or
+                BackendServiceType.NHost => true,
                 _ => false
             };
         }

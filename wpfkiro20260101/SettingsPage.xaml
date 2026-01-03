@@ -303,6 +303,7 @@
 
                         <!-- API Key -->
                         <TextBlock Grid.Row="6" Grid.Column="0" 
+                                   x:Name="ApiKeyLabel"
                                    Text="API Key:" 
                                    FontWeight="Bold" 
                                    Margin="0,0,15,10" 

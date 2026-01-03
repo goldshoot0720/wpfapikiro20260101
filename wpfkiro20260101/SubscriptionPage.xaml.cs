@@ -106,6 +106,9 @@ namespace wpfkiro20260101
                     case BackendServiceType.Contentful:
                         await LoadContentfulSubscriptionData();
                         break;
+                    case BackendServiceType.NHost:
+                        await LoadNHostSubscriptionData();
+                        break;
                     default:
                         ShowInfoMessage($"後端服務 {settings.GetServiceDisplayName()} 暫不支援訂閱管理功能");
                         break;
@@ -265,6 +268,32 @@ namespace wpfkiro20260101
             {
                 ShowErrorMessage($"Contentful 訂閱資料載入錯誤：{ex.Message}");
                 UpdateSubscriptionList(new object[0], "Contentful");
+            }
+        }
+
+        private async Task LoadNHostSubscriptionData()
+        {
+            try
+            {
+                // 使用 NHost 服務載入訂閱資料
+                if (_currentBackendService is NHostService nHostService)
+                {
+                    var result = await nHostService.GetSubscriptionsAsync();
+                    if (result.Success && result.Data != null)
+                    {
+                        UpdateSubscriptionList(result.Data, "NHost");
+                    }
+                    else
+                    {
+                        ShowErrorMessage($"NHost 載入失敗：{result.ErrorMessage}");
+                        UpdateSubscriptionList(new object[0], "NHost (無資料)");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"NHost 訂閱資料載入錯誤：{ex.Message}");
+                UpdateSubscriptionList(new object[0], "NHost (錯誤)");
             }
         }
 

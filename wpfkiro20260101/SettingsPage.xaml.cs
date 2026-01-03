@@ -582,6 +582,9 @@ namespace wpfkiro20260101
                     FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Visible;
                     SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Visible;
                     SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Visible;
+                    // 顯示 API Key 欄位
+                    ApiKeyLabel.Visibility = System.Windows.Visibility.Visible;
+                    ApiKeyPasswordBox.Visibility = System.Windows.Visibility.Visible;
                     break;
                 case BackendServiceType.Contentful:
                     ApiUrlLabel.Text = "API URL:";
@@ -595,6 +598,9 @@ namespace wpfkiro20260101
                     FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    // 顯示 API Key 欄位
+                    ApiKeyLabel.Visibility = System.Windows.Visibility.Visible;
+                    ApiKeyPasswordBox.Visibility = System.Windows.Visibility.Visible;
                     break;
                 case BackendServiceType.Back4App:
                     ApiUrlLabel.Text = "API URL:";
@@ -608,6 +614,9 @@ namespace wpfkiro20260101
                     FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    // 顯示 API Key 欄位
+                    ApiKeyLabel.Visibility = System.Windows.Visibility.Visible;
+                    ApiKeyPasswordBox.Visibility = System.Windows.Visibility.Visible;
                     break;
                 case BackendServiceType.MySQL:
                     ApiUrlLabel.Text = "API URL:";
@@ -621,6 +630,9 @@ namespace wpfkiro20260101
                     FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    // 顯示 API Key 欄位
+                    ApiKeyLabel.Visibility = System.Windows.Visibility.Visible;
+                    ApiKeyPasswordBox.Visibility = System.Windows.Visibility.Visible;
                     break;
                 case BackendServiceType.Supabase:
                     ApiUrlLabel.Text = "API URL:";
@@ -634,6 +646,24 @@ namespace wpfkiro20260101
                     FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    // 顯示 API Key 欄位
+                    ApiKeyLabel.Visibility = System.Windows.Visibility.Visible;
+                    ApiKeyPasswordBox.Visibility = System.Windows.Visibility.Visible;
+                    break;
+                case BackendServiceType.NHost:
+                    ApiUrlLabel.Text = "NHOST_GRAPHQL_URL:";
+                    ProjectIdLabel.Text = "NHOST_ADMIN_SECRET:";
+                    // 隱藏 Appwrite 專用欄位和 API Key 欄位（NHost 只需要兩個欄位）
+                    DatabaseIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    DatabaseIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    BucketIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    BucketIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    ApiKeyLabel.Visibility = System.Windows.Visibility.Collapsed;
+                    ApiKeyPasswordBox.Visibility = System.Windows.Visibility.Collapsed;
                     break;
                 case BackendServiceType.Strapi:
                     ApiUrlLabel.Text = "API URL:";
@@ -647,6 +677,9 @@ namespace wpfkiro20260101
                     FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    // 顯示 API Key 欄位
+                    ApiKeyLabel.Visibility = System.Windows.Visibility.Visible;
+                    ApiKeyPasswordBox.Visibility = System.Windows.Visibility.Visible;
                     break;
                 case BackendServiceType.Sanity:
                     ApiUrlLabel.Text = "API URL:";
@@ -660,6 +693,9 @@ namespace wpfkiro20260101
                     FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    // 顯示 API Key 欄位
+                    ApiKeyLabel.Visibility = System.Windows.Visibility.Visible;
+                    ApiKeyPasswordBox.Visibility = System.Windows.Visibility.Visible;
                     break;
                 default:
                     ApiUrlLabel.Text = "API URL:";
@@ -673,6 +709,9 @@ namespace wpfkiro20260101
                     FoodCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdLabel.Visibility = System.Windows.Visibility.Collapsed;
                     SubscriptionCollectionIdTextBox.Visibility = System.Windows.Visibility.Collapsed;
+                    // 顯示 API Key 欄位
+                    ApiKeyLabel.Visibility = System.Windows.Visibility.Visible;
+                    ApiKeyPasswordBox.Visibility = System.Windows.Visibility.Visible;
                     break;
             }
 
@@ -727,16 +766,22 @@ namespace wpfkiro20260101
                     break;
 
                 case BackendServiceType.NHost:
+                    // NHost 強制使用正確的預設值
                     if (string.IsNullOrWhiteSpace(ApiUrlTextBox.Text) || 
-                        IsDefaultUrl(ApiUrlTextBox.Text))
+                        IsDefaultUrl(ApiUrlTextBox.Text) ||
+                        ApiUrlTextBox.Text.Contains("your-project") ||
+                        !ApiUrlTextBox.Text.Contains("uxgwdiuehabbzenwtcqo"))
                     {
                         ApiUrlTextBox.Text = AppSettings.Defaults.NHost.ApiUrl;
                     }
                     if (string.IsNullOrWhiteSpace(ProjectIdTextBox.Text) ||
-                        IsDefaultProjectId(ProjectIdTextBox.Text))
+                        IsDefaultProjectId(ProjectIdTextBox.Text) ||
+                        ProjectIdTextBox.Text.Contains("your-project") ||
+                        ProjectIdTextBox.Text != "cu#34&yjF3Cr%fgxB#WA,4r4^c=Igcwr")
                     {
                         ProjectIdTextBox.Text = AppSettings.Defaults.NHost.ProjectId;
                     }
+                    // NHost 只需要兩個欄位，不需要 API Key
                     break;
 
                 case BackendServiceType.Contentful:

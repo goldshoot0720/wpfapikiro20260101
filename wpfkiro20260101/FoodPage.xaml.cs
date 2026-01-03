@@ -91,6 +91,9 @@ namespace wpfkiro20260101
                     case BackendServiceType.MySQL:
                         await LoadMySQLFoodData();
                         break;
+                    case BackendServiceType.NHost:
+                        await LoadNHostFoodData();
+                        break;
                     default:
                         ShowInfoMessage($"後端服務 {settings.GetServiceDisplayName()} 暫不支援食品管理功能");
                         break;
@@ -204,6 +207,32 @@ namespace wpfkiro20260101
             {
                 ShowErrorMessage($"MySQL 食品資料載入錯誤：{ex.Message}");
                 UpdateFoodList(new object[0], "MySQL (錯誤)");
+            }
+        }
+
+        private async Task LoadNHostFoodData()
+        {
+            try
+            {
+                // 使用 NHost 服務載入食品資料
+                if (_currentBackendService is NHostService nHostService)
+                {
+                    var result = await nHostService.GetFoodsAsync();
+                    if (result.Success && result.Data != null)
+                    {
+                        UpdateFoodList(result.Data, "NHost");
+                    }
+                    else
+                    {
+                        ShowErrorMessage($"NHost 載入失敗：{result.ErrorMessage}");
+                        UpdateFoodList(new object[0], "NHost (無資料)");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"NHost 食品資料載入錯誤：{ex.Message}");
+                UpdateFoodList(new object[0], "NHost (錯誤)");
             }
         }
 

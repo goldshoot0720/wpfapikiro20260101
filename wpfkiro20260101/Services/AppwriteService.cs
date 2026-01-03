@@ -894,5 +894,13 @@ namespace wpfkiro20260101.Services
 
         public Client? GetClient() => _client;
         public Health? GetHealth() => _health;
+
+        public void Dispose()
+        {
+            // Appwrite Client doesn't implement IDisposable, so no cleanup needed
+            // But we can set references to null to help GC
+            _client = null;
+            _health = null;
+        }
     }
 }

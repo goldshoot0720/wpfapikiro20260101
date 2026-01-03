@@ -1,8 +1,9 @@
+using System;
 using System.Threading.Tasks;
 
 namespace wpfkiro20260101.Services
 {
-    public interface IBackendService
+    public interface IBackendService : IDisposable
     {
         Task<bool> TestConnectionAsync();
         Task<bool> InitializeAsync();
