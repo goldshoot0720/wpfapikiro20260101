@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,6 +13,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Net.Http;
+using System.IO;
 using wpfkiro20260101.Services;
 using wpfkiro20260101.Models;
 using MessageBox = System.Windows.MessageBox;
@@ -21,6 +24,7 @@ using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using Brushes = System.Windows.Media.Brushes;
 using Cursors = System.Windows.Input.Cursors;
+using Orientation = System.Windows.Controls.Orientation;
 
 namespace wpfkiro20260101
 {
@@ -30,6 +34,15 @@ namespace wpfkiro20260101
     public partial class FoodPage : Page
     {
         private IBackendService? _currentBackendService;
+        private static readonly HttpClient _httpClient = new HttpClient();
+
+        static FoodPage()
+        {
+            // 設置 HttpClient 的 User-Agent 以避免被某些網站阻擋
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", 
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+            _httpClient.Timeout = TimeSpan.FromSeconds(10);
+        }
 
         public FoodPage()
         {
@@ -341,8 +354,59 @@ namespace wpfkiro20260101
                 {
                     try
                     {
-                        // 嘗試獲取 toDate 或相關的日期欄位
-                        var toDate = GetPropertyValue(item, "todate", "toDate", "ToDate") ?? "";
+                        string toDate = "";
+                        
+                        // 檢查是否為 JsonElement（NHost 返回的格式）
+                        if (item is JsonElement jsonElement)
+                        {
+                            // 嘗試使用可用的日期欄位進行排序
+                            string dateString = "";
+                            
+                            // 按優先順序嘗試不同的日期欄位
+                            if (jsonElement.TryGetProperty("todate", out var todateElement))
+                            {
+                                dateString = todateElement.GetString() ?? "";
+                            }
+                            else if (jsonElement.TryGetProperty("toDate", out var toDateElement))
+                            {
+                                dateString = toDateElement.GetString() ?? "";
+                            }
+                            else if (jsonElement.TryGetProperty("ToDate", out var ToDateElement))
+                            {
+                                dateString = ToDateElement.GetString() ?? "";
+                            }
+                            else if (jsonElement.TryGetProperty("created_at", out var createdAtElement))
+                            {
+                                dateString = createdAtElement.GetString() ?? "";
+                            }
+                            else if (jsonElement.TryGetProperty("$createdAt", out var dollarCreatedAtElement))
+                            {
+                                dateString = dollarCreatedAtElement.GetString() ?? "";
+                            }
+                            
+                            if (!string.IsNullOrEmpty(dateString) && DateTime.TryParse(dateString, out DateTime jsonParsedDate))
+                            {
+                                return jsonParsedDate;
+                            }
+                            
+                            // 如果沒有找到有效的日期，使用名稱進行排序
+                            if (jsonElement.TryGetProperty("name", out var nameElement))
+                            {
+                                var name = nameElement.GetString() ?? "";
+                                // 使用名稱的字母順序作為排序依據，無日期的項目排在最後
+                                return DateTime.MaxValue.AddDays(-name.Length);
+                            }
+                            else if (jsonElement.TryGetProperty("foodName", out var foodNameElement))
+                            {
+                                var name = foodNameElement.GetString() ?? "";
+                                return DateTime.MaxValue.AddDays(-name.Length);
+                            }
+                        }
+                        else
+                        {
+                            // 原有的反射解析邏輯（用於其他後端服務）
+                            toDate = GetPropertyValue(item, "todate", "toDate", "ToDate", "nextdate") ?? "";
+                        }
                         
                         if (DateTime.TryParse(toDate, out DateTime parsedDate))
                         {
@@ -350,7 +414,7 @@ namespace wpfkiro20260101
                         }
                         
                         // 如果無法解析日期，嘗試使用 createdAt 或 updatedAt
-                        var createdAt = GetPropertyValue(item, "$createdAt", "createdAt", "CreatedAt") ?? "";
+                        var createdAt = GetPropertyValue(item, "$createdAt", "createdAt", "CreatedAt", "created_at") ?? "";
                         if (DateTime.TryParse(createdAt, out DateTime createdDate))
                         {
                             return createdDate;
@@ -397,45 +461,116 @@ namespace wpfkiro20260101
             var storageLocation = "";
             var description = "";
 
-            // 簡單的資料解析
+            // 智能資料解析 - 支援多種後端服務的資料格式
             try
             {
-                if (foodItem.GetType().GetProperty("foodName")?.GetValue(foodItem) is string itemName)
-                    name = itemName;
-                if (foodItem.GetType().GetProperty("FoodName")?.GetValue(foodItem) is string itemName2)
-                    name = itemName2;
-                if (foodItem.GetType().GetProperty("price")?.GetValue(foodItem) is int itemPrice)
-                    price = $"NT$ {itemPrice}";
-                if (foodItem.GetType().GetProperty("Price")?.GetValue(foodItem) is int itemPrice2)
-                    price = $"NT$ {itemPrice2}";
-                if (foodItem.GetType().GetProperty("quantity")?.GetValue(foodItem) is int itemQuantity)
-                    quantity = itemQuantity.ToString();
-                if (foodItem.GetType().GetProperty("Quantity")?.GetValue(foodItem) is int itemQuantity2)
-                    quantity = itemQuantity2.ToString();
-                if (foodItem.GetType().GetProperty("shop")?.GetValue(foodItem) is string itemShop)
-                    shop = itemShop;
-                if (foodItem.GetType().GetProperty("Shop")?.GetValue(foodItem) is string itemShop2)
-                    shop = itemShop2;
-                if (foodItem.GetType().GetProperty("toDate")?.GetValue(foodItem) is string itemToDate)
-                    toDate = itemToDate;
-                if (foodItem.GetType().GetProperty("ToDate")?.GetValue(foodItem) is string itemToDate2)
-                    toDate = itemToDate2;
-                if (foodItem.GetType().GetProperty("photo")?.GetValue(foodItem) is string itemPhoto)
-                    photo = itemPhoto;
-                if (foodItem.GetType().GetProperty("Photo")?.GetValue(foodItem) is string itemPhoto2)
-                    photo = itemPhoto2;
-                if (foodItem.GetType().GetProperty("category")?.GetValue(foodItem) is string itemCategory)
-                    category = itemCategory;
-                if (foodItem.GetType().GetProperty("Category")?.GetValue(foodItem) is string itemCategory2)
-                    category = itemCategory2;
-                if (foodItem.GetType().GetProperty("storageLocation")?.GetValue(foodItem) is string itemStorage)
-                    storageLocation = itemStorage;
-                if (foodItem.GetType().GetProperty("StorageLocation")?.GetValue(foodItem) is string itemStorage2)
-                    storageLocation = itemStorage2;
-                if (foodItem.GetType().GetProperty("description")?.GetValue(foodItem) is string itemDesc)
-                    description = itemDesc;
-                if (foodItem.GetType().GetProperty("Description")?.GetValue(foodItem) is string itemDesc2)
-                    description = itemDesc2;
+                // 檢查是否為 JsonElement（NHost 返回的格式）
+                if (foodItem is JsonElement jsonElement)
+                {
+                    // 使用 JsonElement 的方法解析資料
+                    if (jsonElement.TryGetProperty("name", out var nameElement))
+                        name = nameElement.GetString() ?? "未知食品";
+                    else if (jsonElement.TryGetProperty("foodName", out var foodNameElement))
+                        name = foodNameElement.GetString() ?? "未知食品";
+                    else if (jsonElement.TryGetProperty("FoodName", out var FoodNameElement))
+                        name = FoodNameElement.GetString() ?? "未知食品";
+                    
+                    if (jsonElement.TryGetProperty("price", out var priceElement))
+                    {
+                        if (priceElement.ValueKind == JsonValueKind.Number)
+                        {
+                            if (priceElement.TryGetInt32(out var intPrice))
+                                price = $"NT$ {intPrice}";
+                            else if (priceElement.TryGetDouble(out var doublePrice))
+                                price = $"NT$ {doublePrice:F2}";
+                        }
+                        else if (priceElement.ValueKind == JsonValueKind.String)
+                        {
+                            var priceStr = priceElement.GetString() ?? "0";
+                            if (int.TryParse(priceStr, out var parsedPrice))
+                                price = $"NT$ {parsedPrice}";
+                        }
+                    }
+                    
+                    if (jsonElement.TryGetProperty("quantity", out var quantityElement))
+                    {
+                        if (quantityElement.ValueKind == JsonValueKind.Number)
+                        {
+                            if (quantityElement.TryGetInt32(out var intQuantity))
+                                quantity = intQuantity.ToString();
+                        }
+                        else if (quantityElement.ValueKind == JsonValueKind.String)
+                        {
+                            quantity = quantityElement.GetString() ?? "1";
+                        }
+                    }
+                    
+                    if (jsonElement.TryGetProperty("shop", out var shopElement))
+                        shop = shopElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("todate", out var todateElement))
+                        toDate = todateElement.GetString() ?? "";
+                    else if (jsonElement.TryGetProperty("toDate", out var toDateElement))
+                        toDate = toDateElement.GetString() ?? "";
+                    else if (jsonElement.TryGetProperty("ToDate", out var ToDateElement))
+                        toDate = ToDateElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("photo", out var photoElement))
+                        photo = photoElement.GetString() ?? "";
+                    else if (jsonElement.TryGetProperty("photohash", out var photohashElement))
+                        photo = photohashElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("category", out var categoryElement))
+                        category = categoryElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("storageLocation", out var storageLocationElement))
+                        storageLocation = storageLocationElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("description", out var descriptionElement))
+                        description = descriptionElement.GetString() ?? "";
+                    else if (jsonElement.TryGetProperty("note", out var noteElement))
+                        description = noteElement.GetString() ?? "";
+                }
+                else
+                {
+                    // 原有的反射解析邏輯（用於其他後端服務）
+                    // 使用 GetPropertyValue 方法來處理不同的資料格式（包括 JsonElement）
+                    var nameValue = GetPropertyValue(foodItem, "name", "foodName", "FoodName");
+                    if (!string.IsNullOrEmpty(nameValue))
+                        name = nameValue;
+
+                    var priceValue = GetPropertyValue(foodItem, "price", "Price");
+                    if (!string.IsNullOrEmpty(priceValue) && int.TryParse(priceValue, out int parsedPrice))
+                        price = $"NT$ {parsedPrice}";
+
+                    var quantityValue = GetPropertyValue(foodItem, "quantity", "Quantity");
+                    if (!string.IsNullOrEmpty(quantityValue) && int.TryParse(quantityValue, out int parsedQuantity))
+                        quantity = parsedQuantity.ToString();
+
+                    var shopValue = GetPropertyValue(foodItem, "shop", "Shop", "site");
+                    if (!string.IsNullOrEmpty(shopValue))
+                        shop = shopValue;
+
+                    var toDateValue = GetPropertyValue(foodItem, "toDate", "ToDate", "todate", "nextdate");
+                    if (!string.IsNullOrEmpty(toDateValue))
+                        toDate = toDateValue;
+
+                    var photoValue = GetPropertyValue(foodItem, "photo", "Photo", "photohash");
+                    if (!string.IsNullOrEmpty(photoValue))
+                        photo = photoValue;
+
+                    var categoryValue = GetPropertyValue(foodItem, "category", "Category");
+                    if (!string.IsNullOrEmpty(categoryValue))
+                        category = categoryValue;
+
+                    var storageValue = GetPropertyValue(foodItem, "storageLocation", "StorageLocation");
+                    if (!string.IsNullOrEmpty(storageValue))
+                        storageLocation = storageValue;
+
+                    var descValue = GetPropertyValue(foodItem, "description", "Description", "note");
+                    if (!string.IsNullOrEmpty(descValue))
+                        description = descValue;
+                }
             }
             catch (Exception ex)
             {
@@ -541,14 +676,84 @@ namespace wpfkiro20260101
             // 商店
             if (!string.IsNullOrEmpty(shop))
             {
-                var shopText = new TextBlock
+                // 創建可點擊的商店連結（如果是網址）
+                var shopPanel = new StackPanel
                 {
-                    Text = $"商店: {shop}",
-                    FontSize = 12,
-                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#374151")),
+                    Orientation = Orientation.Horizontal,
                     Margin = new Thickness(0, 0, 0, 5)
                 };
-                stackPanel.Children.Add(shopText);
+
+                var shopLabel = new TextBlock
+                {
+                    Text = "商店: ",
+                    FontSize = 12,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6B7280"))
+                };
+
+                if (IsValidUrl(shop))
+                {
+                    // 如果是有效的網址，創建可點擊的連結
+                    var shopLink = new TextBlock
+                    {
+                        Text = shop,
+                        FontSize = 12,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3B82F6")),
+                        TextDecorations = TextDecorations.Underline,
+                        Cursor = Cursors.Hand,
+                        ToolTip = $"點擊開啟 {shop}"
+                    };
+
+                    // 添加點擊事件
+                    shopLink.MouseLeftButtonUp += (sender, e) =>
+                    {
+                        try
+                        {
+                            var url = shop;
+                            if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+                            {
+                                url = "https://" + url;
+                            }
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = url,
+                                UseShellExecute = true
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"無法開啟網站：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+                    };
+
+                    // 添加滑鼠懸停效果
+                    shopLink.MouseEnter += (sender, e) =>
+                    {
+                        shopLink.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1D4ED8"));
+                    };
+
+                    shopLink.MouseLeave += (sender, e) =>
+                    {
+                        shopLink.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3B82F6"));
+                    };
+
+                    shopPanel.Children.Add(shopLabel);
+                    shopPanel.Children.Add(shopLink);
+                }
+                else
+                {
+                    // 如果不是網址，顯示普通文字
+                    var shopText = new TextBlock
+                    {
+                        Text = shop,
+                        FontSize = 12,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#374151"))
+                    };
+
+                    shopPanel.Children.Add(shopLabel);
+                    shopPanel.Children.Add(shopText);
+                }
+
+                stackPanel.Children.Add(shopPanel);
             }
 
             // 分類和儲存位置
@@ -649,6 +854,131 @@ namespace wpfkiro20260101
         private void ShowInfoMessage(string message)
         {
             MessageBox.Show(message, "資訊", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private bool IsValidUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url)) return false;
+            
+            try
+            {
+                // 檢查是否包含常見的網址模式
+                var lowerUrl = url.ToLower();
+                
+                // 如果已經是完整的 URL
+                if (lowerUrl.StartsWith("http://") || lowerUrl.StartsWith("https://"))
+                {
+                    return Uri.TryCreate(url, UriKind.Absolute, out _);
+                }
+                
+                // 檢查是否看起來像域名
+                if (lowerUrl.Contains(".") && !lowerUrl.Contains(" "))
+                {
+                    // 嘗試構建 URL 並驗證
+                    return Uri.TryCreate("https://" + url, UriKind.Absolute, out _);
+                }
+                
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // 獲取網站 favicon 的方法
+        private async Task<BitmapImage?> GetFaviconAsync(string websiteUrl)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(websiteUrl))
+                    return null;
+
+                // 確保 URL 格式正確
+                if (!websiteUrl.StartsWith("http://") && !websiteUrl.StartsWith("https://"))
+                {
+                    websiteUrl = "https://" + websiteUrl;
+                }
+
+                var uri = new Uri(websiteUrl);
+                var baseUrl = $"{uri.Scheme}://{uri.Host}";
+                
+                // 嘗試多個常見的 favicon 路徑
+                var faviconUrls = new[]
+                {
+                    $"{baseUrl}/favicon.ico",
+                    $"{baseUrl}/favicon.png",
+                    $"{baseUrl}/apple-touch-icon.png",
+                    $"{baseUrl}/apple-touch-icon-precomposed.png"
+                };
+
+                foreach (var faviconUrl in faviconUrls)
+                {
+                    try
+                    {
+                        var response = await _httpClient.GetAsync(faviconUrl);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var imageBytes = await response.Content.ReadAsByteArrayAsync();
+                            if (imageBytes.Length > 0)
+                            {
+                                var bitmap = new BitmapImage();
+                                bitmap.BeginInit();
+                                bitmap.StreamSource = new MemoryStream(imageBytes);
+                                bitmap.DecodePixelWidth = 40; // 設置較大尺寸以獲得更好品質
+                                bitmap.DecodePixelHeight = 40;
+                                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                bitmap.EndInit();
+                                bitmap.Freeze(); // 使其可以跨線程使用
+                                
+                                System.Diagnostics.Debug.WriteLine($"成功載入 favicon: {faviconUrl}");
+                                return bitmap;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"載入 favicon 失敗 ({faviconUrl}): {ex.Message}");
+                        continue;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"獲取 favicon 時發生錯誤: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        // 異步載入 favicon 並更新 UI
+        private async Task LoadFaviconForCard(Border faviconContainer, string websiteUrl)
+        {
+            try
+            {
+                var favicon = await GetFaviconAsync(websiteUrl);
+                if (favicon != null)
+                {
+                    // 在 UI 線程上更新圖像
+                    Dispatcher.Invoke(() =>
+                    {
+                        var image = new Image
+                        {
+                            Source = favicon,
+                            Width = 40,
+                            Height = 40,
+                            HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Center
+                        };
+                        faviconContainer.Child = image;
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"載入 favicon 時發生錯誤: {ex.Message}");
+                // 保持預設圖示
+            }
         }
 
         private bool IsValidImageUrl(string url)
@@ -794,33 +1124,109 @@ namespace wpfkiro20260101
             {
                 var food = new Food();
                 
-                if (foodItem.GetType().GetProperty("id")?.GetValue(foodItem) is string id)
-                    food.Id = id;
-                if (foodItem.GetType().GetProperty("foodName")?.GetValue(foodItem) is string name)
-                    food.FoodName = name;
-                if (foodItem.GetType().GetProperty("shop")?.GetValue(foodItem) is string shop)
-                    food.Shop = shop;
-                if (foodItem.GetType().GetProperty("price")?.GetValue(foodItem) is int price)
-                    food.Price = price;
-                if (foodItem.GetType().GetProperty("quantity")?.GetValue(foodItem) is int quantity)
-                    food.Quantity = quantity;
-                if (foodItem.GetType().GetProperty("photo")?.GetValue(foodItem) is string photo)
-                    food.Photo = photo;
-                if (foodItem.GetType().GetProperty("photoHash")?.GetValue(foodItem) is string photoHash)
-                    food.PhotoHash = photoHash;
-                if (foodItem.GetType().GetProperty("note")?.GetValue(foodItem) is string note)
-                    food.Note = note;
-                if (foodItem.GetType().GetProperty("description")?.GetValue(foodItem) is string description)
-                    food.Description = description;
-                if (foodItem.GetType().GetProperty("category")?.GetValue(foodItem) is string category)
-                    food.Category = category;
-                if (foodItem.GetType().GetProperty("storageLocation")?.GetValue(foodItem) is string storageLocation)
-                    food.StorageLocation = storageLocation;
-                
-                // 處理到期日期
-                if (foodItem.GetType().GetProperty("toDate")?.GetValue(foodItem) is string toDateStr)
+                // 檢查是否為 JsonElement（NHost 返回的格式）
+                if (foodItem is JsonElement jsonElement)
                 {
-                    food.ToDate = toDateStr;
+                    // 使用 JsonElement 的方法解析資料
+                    if (jsonElement.TryGetProperty("id", out var idElement))
+                        food.Id = idElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("name", out var nameElement))
+                        food.FoodName = nameElement.GetString() ?? "";
+                    else if (jsonElement.TryGetProperty("foodName", out var foodNameElement))
+                        food.FoodName = foodNameElement.GetString() ?? "";
+                    else if (jsonElement.TryGetProperty("FoodName", out var FoodNameElement))
+                        food.FoodName = FoodNameElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("shop", out var shopElement))
+                        food.Shop = shopElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("price", out var priceElement))
+                    {
+                        if (priceElement.ValueKind == JsonValueKind.Number)
+                        {
+                            if (priceElement.TryGetInt32(out var intPrice))
+                                food.Price = intPrice;
+                        }
+                        else if (priceElement.ValueKind == JsonValueKind.String)
+                        {
+                            var priceStr = priceElement.GetString() ?? "0";
+                            if (int.TryParse(priceStr, out var parsedPrice))
+                                food.Price = parsedPrice;
+                        }
+                    }
+                    
+                    if (jsonElement.TryGetProperty("quantity", out var quantityElement))
+                    {
+                        if (quantityElement.ValueKind == JsonValueKind.Number)
+                        {
+                            if (quantityElement.TryGetInt32(out var intQuantity))
+                                food.Quantity = intQuantity;
+                        }
+                        else if (quantityElement.ValueKind == JsonValueKind.String)
+                        {
+                            var quantityStr = quantityElement.GetString() ?? "1";
+                            if (int.TryParse(quantityStr, out var parsedQuantity))
+                                food.Quantity = parsedQuantity;
+                        }
+                    }
+                    
+                    if (jsonElement.TryGetProperty("photo", out var photoElement))
+                        food.Photo = photoElement.GetString() ?? "";
+                    else if (jsonElement.TryGetProperty("photohash", out var photohashElement))
+                        food.PhotoHash = photohashElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("note", out var noteElement))
+                        food.Note = noteElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("description", out var descriptionElement))
+                        food.Description = descriptionElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("category", out var categoryElement))
+                        food.Category = categoryElement.GetString() ?? "";
+                    
+                    if (jsonElement.TryGetProperty("storageLocation", out var storageLocationElement))
+                        food.StorageLocation = storageLocationElement.GetString() ?? "";
+                    
+                    // 處理到期日期
+                    if (jsonElement.TryGetProperty("todate", out var todateElement))
+                        food.ToDate = todateElement.GetString() ?? "";
+                    else if (jsonElement.TryGetProperty("toDate", out var toDateElement))
+                        food.ToDate = toDateElement.GetString() ?? "";
+                    else if (jsonElement.TryGetProperty("ToDate", out var ToDateElement))
+                        food.ToDate = ToDateElement.GetString() ?? "";
+                }
+                else
+                {
+                    // 原有的反射解析邏輯（用於其他後端服務）
+                    if (foodItem.GetType().GetProperty("id")?.GetValue(foodItem) is string id)
+                        food.Id = id;
+                    if (foodItem.GetType().GetProperty("foodName")?.GetValue(foodItem) is string name)
+                        food.FoodName = name;
+                    if (foodItem.GetType().GetProperty("shop")?.GetValue(foodItem) is string shop)
+                        food.Shop = shop;
+                    if (foodItem.GetType().GetProperty("price")?.GetValue(foodItem) is int price)
+                        food.Price = price;
+                    if (foodItem.GetType().GetProperty("quantity")?.GetValue(foodItem) is int quantity)
+                        food.Quantity = quantity;
+                    if (foodItem.GetType().GetProperty("photo")?.GetValue(foodItem) is string photo)
+                        food.Photo = photo;
+                    if (foodItem.GetType().GetProperty("photoHash")?.GetValue(foodItem) is string photoHash)
+                        food.PhotoHash = photoHash;
+                    if (foodItem.GetType().GetProperty("note")?.GetValue(foodItem) is string note)
+                        food.Note = note;
+                    if (foodItem.GetType().GetProperty("description")?.GetValue(foodItem) is string description)
+                        food.Description = description;
+                    if (foodItem.GetType().GetProperty("category")?.GetValue(foodItem) is string category)
+                        food.Category = category;
+                    if (foodItem.GetType().GetProperty("storageLocation")?.GetValue(foodItem) is string storageLocation)
+                        food.StorageLocation = storageLocation;
+                    
+                    // 處理到期日期
+                    if (foodItem.GetType().GetProperty("toDate")?.GetValue(foodItem) is string toDateStr)
+                    {
+                        food.ToDate = toDateStr;
+                    }
                 }
 
                 food.CreatedAt = DateTime.UtcNow;
@@ -851,10 +1257,27 @@ namespace wpfkiro20260101
                     
                     try
                     {
-                        if (foodItem.GetType().GetProperty("id")?.GetValue(foodItem) is string id)
-                            foodId = id;
-                        if (foodItem.GetType().GetProperty("foodName")?.GetValue(foodItem) is string name)
-                            foodName = name;
+                        // 檢查是否為 JsonElement（NHost 返回的格式）
+                        if (foodItem is JsonElement jsonElement)
+                        {
+                            if (jsonElement.TryGetProperty("id", out var idElement))
+                                foodId = idElement.GetString() ?? "";
+                            
+                            if (jsonElement.TryGetProperty("name", out var nameElement))
+                                foodName = nameElement.GetString() ?? "未知食品";
+                            else if (jsonElement.TryGetProperty("foodName", out var foodNameElement))
+                                foodName = foodNameElement.GetString() ?? "未知食品";
+                            else if (jsonElement.TryGetProperty("FoodName", out var FoodNameElement))
+                                foodName = FoodNameElement.GetString() ?? "未知食品";
+                        }
+                        else
+                        {
+                            // 原有的反射解析邏輯（用於其他後端服務）
+                            if (foodItem.GetType().GetProperty("id")?.GetValue(foodItem) is string id)
+                                foodId = id;
+                            if (foodItem.GetType().GetProperty("foodName")?.GetValue(foodItem) is string name)
+                                foodName = name;
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -966,6 +1389,35 @@ namespace wpfkiro20260101
         {
             if (obj == null) return null;
 
+            // 處理 JsonElement（NHost 和其他 GraphQL 服務返回的格式）
+            if (obj is JsonElement jsonElement)
+            {
+                foreach (var propertyName in propertyNames)
+                {
+                    try
+                    {
+                        if (jsonElement.TryGetProperty(propertyName, out var property))
+                        {
+                            return property.ValueKind switch
+                            {
+                                JsonValueKind.String => property.GetString(),
+                                JsonValueKind.Number => property.GetInt32().ToString(),
+                                JsonValueKind.True => "true",
+                                JsonValueKind.False => "false",
+                                JsonValueKind.Null => null,
+                                _ => property.ToString()
+                            };
+                        }
+                    }
+                    catch
+                    {
+                        // 繼續嘗試下一個屬性名稱
+                    }
+                }
+                return null;
+            }
+
+            // 處理普通物件（使用反射）
             var objType = obj.GetType();
             
             foreach (var propertyName in propertyNames)
