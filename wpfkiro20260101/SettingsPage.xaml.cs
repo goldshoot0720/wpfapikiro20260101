@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using wpfkiro20260101.Services;
+using Brushes = System.Windows.Media.Brushes;
+using MessageBox = System.Windows.MessageBox;
+using RadioButton = System.Windows.Controls.RadioButton;
 
 namespace wpfkiro20260101
 {
@@ -397,7 +401,7 @@ namespace wpfkiro20260101
             }
         }
 
-        private void ShowStatusMessage(string message, Brush color)
+        private void ShowStatusMessage(string message, System.Windows.Media.Brush color)
         {
             StatusMessage.Text = message;
             StatusMessage.Foreground = color;
@@ -949,8 +953,9 @@ namespace wpfkiro20260101
                     {
                         // Supabase 格式：id,created_at,name,todate,amount,photo,price,shop,photohash
                         var amount = GetPropertyValue(item, "amount", "quantity", "Quantity") ?? "1"; // 預設數量為1
+                        var supabaseId = ConvertToUuid(id); // 轉換為 UUID 格式
                         
-                        csv.AppendLine($"{EscapeCsvField(id)},{createdAtFormatted},{EscapeCsvField(name)},{todate},{amount},{EscapeCsvField(photo)},{price},{EscapeCsvField(shop)},{EscapeCsvField(photohash)}");
+                        csv.AppendLine($"{EscapeCsvField(supabaseId)},{createdAtFormatted},{EscapeCsvField(name)},{todate},{amount},{EscapeCsvField(photo)},{price},{EscapeCsvField(shop)},{EscapeCsvField(photohash)}");
                     }
                     else
                     {
@@ -1008,7 +1013,8 @@ namespace wpfkiro20260101
                     if (settings.BackendService == BackendServiceType.Supabase)
                     {
                         // Supabase 格式：id,created_at,name,nextdate,price,site,note,account
-                        csv.AppendLine($"{EscapeCsvField(id)},{createdAtFormatted},{EscapeCsvField(name)},{nextdate},{price},{EscapeCsvField(site)},{EscapeCsvField(note)},{EscapeCsvField(account)}");
+                        var supabaseId = ConvertToUuid(id); // 轉換為 UUID 格式
+                        csv.AppendLine($"{EscapeCsvField(supabaseId)},{createdAtFormatted},{EscapeCsvField(name)},{nextdate},{price},{EscapeCsvField(site)},{EscapeCsvField(note)},{EscapeCsvField(account)}");
                     }
                     else
                     {
@@ -1438,6 +1444,388 @@ namespace wpfkiro20260101
             catch (Exception ex)
             {
                 ShowStatusMessage($"刷新設定時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+        }
+
+        // 資料轉換功能
+        private async void ConvertFoodCsv_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ConvertFoodCsvButton.IsEnabled = false;
+                ConvertFoodCsvButton.Content = "轉換中...";
+                ShowStatusMessage("正在轉換 Food CSV...", Brushes.Blue);
+
+                var openFileDialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Title = "選擇 Appwrite Food CSV 檔案",
+                    Filter = "CSV 文件 (*.csv)|*.csv|所有文件 (*.*)|*.*",
+                    DefaultExt = ".csv"
+                };
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    var inputFile = openFileDialog.FileName;
+                    var outputFile = Path.Combine(Path.GetDirectoryName(inputFile), 
+                        $"Supabase_{Path.GetFileNameWithoutExtension(inputFile)}.csv");
+
+                    await ConvertAppwriteToSupabaseCsv(inputFile, outputFile, "food");
+                    
+                    ShowStatusMessage($"Food CSV 轉換完成！輸出檔案：{Path.GetFileName(outputFile)}", Brushes.Green);
+                }
+                else
+                {
+                    ShowStatusMessage("未選擇檔案", Brushes.Orange);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"轉換 Food CSV 時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                ConvertFoodCsvButton.IsEnabled = true;
+                ConvertFoodCsvButton.Content = "🔄 轉換 Food CSV";
+            }
+        }
+
+        private async void ConvertSubscriptionCsv_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ConvertSubscriptionCsvButton.IsEnabled = false;
+                ConvertSubscriptionCsvButton.Content = "轉換中...";
+                ShowStatusMessage("正在轉換 Subscription CSV...", Brushes.Blue);
+
+                var openFileDialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Title = "選擇 Appwrite Subscription CSV 檔案",
+                    Filter = "CSV 文件 (*.csv)|*.csv|所有文件 (*.*)|*.*",
+                    DefaultExt = ".csv"
+                };
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    var inputFile = openFileDialog.FileName;
+                    var outputFile = Path.Combine(Path.GetDirectoryName(inputFile), 
+                        $"Supabase_{Path.GetFileNameWithoutExtension(inputFile)}.csv");
+
+                    await ConvertAppwriteToSupabaseCsv(inputFile, outputFile, "subscription");
+                    
+                    ShowStatusMessage($"Subscription CSV 轉換完成！輸出檔案：{Path.GetFileName(outputFile)}", Brushes.Green);
+                }
+                else
+                {
+                    ShowStatusMessage("未選擇檔案", Brushes.Orange);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"轉換 Subscription CSV 時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                ConvertSubscriptionCsvButton.IsEnabled = true;
+                ConvertSubscriptionCsvButton.Content = "🔄 轉換 Subscription CSV";
+            }
+        }
+
+        private async void BatchConvert_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                BatchConvertButton.IsEnabled = false;
+                BatchConvertButton.Content = "批次轉換中...";
+                ShowStatusMessage("正在進行批次轉換...", Brushes.Blue);
+
+                var folderDialog = new System.Windows.Forms.FolderBrowserDialog
+                {
+                    Description = "選擇包含 Appwrite CSV 檔案的資料夾",
+                    ShowNewFolderButton = false
+                };
+
+                if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    var inputFolder = folderDialog.SelectedPath;
+                    var csvFiles = Directory.GetFiles(inputFolder, "*.csv");
+                    
+                    if (csvFiles.Length == 0)
+                    {
+                        ShowStatusMessage("選擇的資料夾中沒有找到 CSV 檔案", Brushes.Orange);
+                        return;
+                    }
+
+                    int convertedCount = 0;
+                    var outputFolder = Path.Combine(inputFolder, "Supabase_Converted");
+                    Directory.CreateDirectory(outputFolder);
+
+                    foreach (var csvFile in csvFiles)
+                    {
+                        try
+                        {
+                            var fileName = Path.GetFileNameWithoutExtension(csvFile);
+                            var outputFile = Path.Combine(outputFolder, $"Supabase_{fileName}.csv");
+                            
+                            // 根據檔案名稱判斷類型
+                            var tableType = fileName.ToLower().Contains("food") ? "food" : 
+                                          fileName.ToLower().Contains("subscription") ? "subscription" : "food";
+                            
+                            await ConvertAppwriteToSupabaseCsv(csvFile, outputFile, tableType);
+                            convertedCount++;
+                            
+                            ShowStatusMessage($"已轉換 {convertedCount}/{csvFiles.Length} 個檔案...", Brushes.Blue);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"轉換檔案 {csvFile} 時發生錯誤: {ex.Message}");
+                        }
+                    }
+                    
+                    ShowStatusMessage($"批次轉換完成！共轉換 {convertedCount} 個檔案，輸出至：{outputFolder}", Brushes.Green);
+                }
+                else
+                {
+                    ShowStatusMessage("未選擇資料夾", Brushes.Orange);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"批次轉換時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                BatchConvertButton.IsEnabled = true;
+                BatchConvertButton.Content = "📂 批次轉換資料夾";
+            }
+        }
+
+        private async Task ConvertAppwriteToSupabaseCsv(string inputFile, string outputFile, string tableType)
+        {
+            await Task.Run(() =>
+            {
+                var lines = File.ReadAllLines(inputFile);
+                if (lines.Length == 0) return;
+
+                var convertedLines = new List<string>();
+                
+                // 處理標題行
+                var headerLine = lines[0];
+                if (tableType == "food")
+                {
+                    // Appwrite Food: $id,name,price,photo,shop,todate,photohash,$createdAt,$updatedAt
+                    // Supabase Food: id,created_at,name,todate,amount,photo,price,shop,photohash
+                    convertedLines.Add("id,created_at,name,todate,amount,photo,price,shop,photohash");
+                }
+                else if (tableType == "subscription")
+                {
+                    // Appwrite Subscription: $id,name,nextdate,price,site,note,account,$createdAt,$updatedAt
+                    // Supabase Subscription: id,created_at,name,nextdate,price,site,note,account
+                    convertedLines.Add("id,created_at,name,nextdate,price,site,note,account");
+                }
+
+                // 處理資料行
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    var line = lines[i];
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+
+                    try
+                    {
+                        var convertedLine = ConvertDataLine(line, tableType);
+                        if (!string.IsNullOrEmpty(convertedLine))
+                        {
+                            convertedLines.Add(convertedLine);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"轉換第 {i + 1} 行時發生錯誤: {ex.Message}");
+                    }
+                }
+
+                // 寫入輸出檔案
+                var utf8WithBom = new System.Text.UTF8Encoding(true);
+                File.WriteAllLines(outputFile, convertedLines, utf8WithBom);
+            });
+        }
+
+        private string ConvertDataLine(string line, string tableType)
+        {
+            // 簡單的 CSV 解析（假設沒有複雜的引號處理）
+            var fields = ParseCsvLine(line);
+            
+            if (tableType == "food")
+            {
+                // Appwrite Food 欄位順序: $id,name,price,photo,shop,todate,photohash,$createdAt,$updatedAt
+                // Supabase Food 欄位順序: id,created_at,name,todate,amount,photo,price,shop,photohash
+                if (fields.Length >= 7)
+                {
+                    var appwriteId = CleanField(fields[0]);
+                    var id = ConvertToUuid(appwriteId); // 轉換為 UUID 格式
+                    var name = CleanField(fields[1]);
+                    var price = CleanField(fields[2]);
+                    var photo = CleanField(fields[3]);
+                    var shop = CleanField(fields[4]);
+                    var todate = ConvertDateFormat(CleanField(fields[5]));
+                    var photohash = fields.Length > 6 ? CleanField(fields[6]) : "";
+                    var createdAt = fields.Length > 7 ? ConvertDateFormat(CleanField(fields[7])) : DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff+00");
+                    var amount = "1"; // 預設數量
+
+                    return $"{id},{createdAt},{name},{todate},{amount},{photo},{price},{shop},{photohash}";
+                }
+            }
+            else if (tableType == "subscription")
+            {
+                // Appwrite Subscription 欄位順序: $id,name,nextdate,price,site,note,account,$createdAt,$updatedAt
+                // Supabase Subscription 欄位順序: id,created_at,name,nextdate,price,site,note,account
+                if (fields.Length >= 7)
+                {
+                    var appwriteId = CleanField(fields[0]);
+                    var id = ConvertToUuid(appwriteId); // 轉換為 UUID 格式
+                    var name = CleanField(fields[1]);
+                    var nextdate = ConvertDateFormat(CleanField(fields[2]));
+                    var price = CleanField(fields[3]);
+                    var site = CleanField(fields[4]);
+                    var note = CleanField(fields[5]);
+                    var account = CleanField(fields[6]);
+                    var createdAt = fields.Length > 7 ? ConvertDateFormat(CleanField(fields[7])) : DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff+00");
+
+                    return $"{id},{createdAt},{name},{nextdate},{price},{site},{note},{account}";
+                }
+            }
+
+            return "";
+        }
+
+        private string[] ParseCsvLine(string line)
+        {
+            // 簡單的 CSV 解析
+            var fields = new List<string>();
+            var current = new System.Text.StringBuilder();
+            bool inQuotes = false;
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                char c = line[i];
+                
+                if (c == '"')
+                {
+                    inQuotes = !inQuotes;
+                }
+                else if (c == ',' && !inQuotes)
+                {
+                    fields.Add(current.ToString());
+                    current.Clear();
+                }
+                else
+                {
+                    current.Append(c);
+                }
+            }
+            
+            fields.Add(current.ToString());
+            return fields.ToArray();
+        }
+
+        private string CleanField(string field)
+        {
+            if (string.IsNullOrEmpty(field)) return "";
+            
+            // 移除前後的引號
+            field = field.Trim();
+            if (field.StartsWith("\"") && field.EndsWith("\""))
+            {
+                field = field.Substring(1, field.Length - 2);
+            }
+            
+            return field;
+        }
+
+        private string ConvertDateFormat(string dateValue)
+        {
+            if (string.IsNullOrEmpty(dateValue)) return "";
+
+            try
+            {
+                if (DateTime.TryParse(dateValue, out DateTime parsedDate))
+                {
+                    // 轉換為 Supabase 格式：yyyy-MM-dd HH:mm:ss.ffffff+00
+                    return parsedDate.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ffffff+00", System.Globalization.CultureInfo.InvariantCulture);
+                }
+                
+                return dateValue;
+            }
+            catch
+            {
+                return dateValue;
+            }
+        }
+
+        private string ConvertToUuid(string appwriteId)
+        {
+            try
+            {
+                // 移除可能的引號和空白
+                appwriteId = appwriteId.Trim().Trim('"');
+                
+                // 如果已經是 UUID 格式，直接返回
+                if (Guid.TryParse(appwriteId, out _))
+                {
+                    return appwriteId;
+                }
+                
+                // 如果 Appwrite ID 長度不足，用零填充到 32 個字符
+                if (appwriteId.Length < 32)
+                {
+                    appwriteId = appwriteId.PadRight(32, '0');
+                }
+                else if (appwriteId.Length > 32)
+                {
+                    // 如果太長，截取前 32 個字符
+                    appwriteId = appwriteId.Substring(0, 32);
+                }
+                
+                // 將 32 個字符的字符串轉換為 UUID 格式 (8-4-4-4-12)
+                var uuid = $"{appwriteId.Substring(0, 8)}-{appwriteId.Substring(8, 4)}-{appwriteId.Substring(12, 4)}-{appwriteId.Substring(16, 4)}-{appwriteId.Substring(20, 12)}";
+                
+                // 驗證生成的 UUID 是否有效
+                if (Guid.TryParse(uuid, out _))
+                {
+                    return uuid;
+                }
+                else
+                {
+                    // 如果轉換失敗，生成一個新的 UUID
+                    return Guid.NewGuid().ToString();
+                }
+            }
+            catch
+            {
+                // 如果任何步驟失敗，生成一個新的 UUID
+                return Guid.NewGuid().ToString();
+            }
+        }
+
+        private async void TestConverter_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TestConverterButton.IsEnabled = false;
+                TestConverterButton.Content = "測試中...";
+                ShowStatusMessage("正在測試 CSV 轉換功能...", Brushes.Blue);
+
+                await TestCsvConverter.RunTest();
+                
+                ShowStatusMessage("CSV 轉換功能測試完成！", Brushes.Green);
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"測試 CSV 轉換功能時發生錯誤：{ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                TestConverterButton.IsEnabled = true;
+                TestConverterButton.Content = "🧪 測試轉換功能";
             }
         }
     }

@@ -14,6 +14,13 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using wpfkiro20260101.Services;
 using wpfkiro20260101.Models;
+using MessageBox = System.Windows.MessageBox;
+using Button = System.Windows.Controls.Button;
+using Image = System.Windows.Controls.Image;
+using Color = System.Windows.Media.Color;
+using ColorConverter = System.Windows.Media.ColorConverter;
+using Brushes = System.Windows.Media.Brushes;
+using Cursors = System.Windows.Input.Cursors;
 
 namespace wpfkiro20260101
 {
@@ -229,13 +236,13 @@ namespace wpfkiro20260101
                     var noDataCard = new Border
                     {
                         Style = (Style)FindResource("FoodCardStyle"),
-                        HorizontalAlignment = HorizontalAlignment.Center,
+                        HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                         MaxWidth = 400
                     };
                     
                     var noDataPanel = new StackPanel
                     {
-                        HorizontalAlignment = HorizontalAlignment.Center,
+                        HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
                         Margin = new Thickness(20)
                     };
@@ -244,7 +251,7 @@ namespace wpfkiro20260101
                     {
                         Text = "🍎",
                         FontSize = 48,
-                        HorizontalAlignment = HorizontalAlignment.Center,
+                        HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                         Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CA3AF")),
                         Margin = new Thickness(0, 0, 0, 10)
                     };
@@ -253,7 +260,7 @@ namespace wpfkiro20260101
                     {
                         Text = "目前沒有食品資料",
                         FontSize = 16,
-                        HorizontalAlignment = HorizontalAlignment.Center,
+                        HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                         Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6B7280")),
                         FontWeight = FontWeights.Bold
                     };
@@ -262,7 +269,7 @@ namespace wpfkiro20260101
                     {
                         Text = "點擊上方的「添加食品」按鈕來新增食品項目",
                         FontSize = 12,
-                        HorizontalAlignment = HorizontalAlignment.Center,
+                        HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                         Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9CA3AF")),
                         Margin = new Thickness(0, 5, 0, 0),
                         TextWrapping = TextWrapping.Wrap
@@ -421,7 +428,7 @@ namespace wpfkiro20260101
                 var image = new Image
                 {
                     Stretch = Stretch.UniformToFill,
-                    HorizontalAlignment = HorizontalAlignment.Center,
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center
                 };
 
@@ -443,7 +450,7 @@ namespace wpfkiro20260101
                         Text = "❌",
                         FontSize = 48,
                         Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF4444")),
-                        HorizontalAlignment = HorizontalAlignment.Center,
+                        HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center
                     };
                     imageBorder.Child = fallbackText;
@@ -456,7 +463,7 @@ namespace wpfkiro20260101
                     Text = "🍎",
                     FontSize = 48,
                     Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981")),
-                    HorizontalAlignment = HorizontalAlignment.Center,
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center
                 };
                 imageBorder.Child = imageText;

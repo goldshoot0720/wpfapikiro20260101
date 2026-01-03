@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using wpfkiro20260101.Models;
+using MessageBox = System.Windows.MessageBox;
 
 namespace wpfkiro20260101
 {

@@ -8,6 +8,9 @@ using System.Windows.Controls;
 using Microsoft.Win32;
 using wpfkiro20260101.Models;
 using wpfkiro20260101.Services;
+using MessageBox = System.Windows.MessageBox;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace wpfkiro20260101
 {

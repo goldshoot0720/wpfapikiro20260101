@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using wpfkiro20260101.Services;
+using MessageBox = System.Windows.MessageBox;
 
 namespace wpfkiro20260101
 {

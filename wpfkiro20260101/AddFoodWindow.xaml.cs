@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using wpfkiro20260101.Models;
+using MessageBox = System.Windows.MessageBox;
 
 namespace wpfkiro20260101
 {

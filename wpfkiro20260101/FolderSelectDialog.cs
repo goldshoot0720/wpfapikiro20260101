@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Windows;
 using Microsoft.Win32;
+using MessageBox = System.Windows.MessageBox;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace wpfkiro20260101
 {

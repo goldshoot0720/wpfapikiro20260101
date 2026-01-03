@@ -343,6 +343,100 @@
                 </StackPanel>
             </Border>
 
+            <!-- 資料轉換區域 -->
+            <Border Style="{StaticResource SettingsCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="資料轉換" Style="{StaticResource SectionTitleStyle}"/>
+                    <TextBlock Text="將 Appwrite CSV 格式轉換為 Supabase CSV 格式，支援欄位映射和格式調整" 
+                               FontSize="14" 
+                               Foreground="#6B7280" 
+                               Margin="0,0,0,20"/>
+                    
+                    <!-- 轉換說明 -->
+                    <Border Background="#F0F9FF" 
+                            BorderBrush="#0EA5E9" 
+                            BorderThickness="1" 
+                            CornerRadius="8" 
+                            Padding="15" 
+                            Margin="0,0,0,20">
+                        <StackPanel>
+                            <TextBlock Text="📋 轉換說明" 
+                                       FontWeight="Bold" 
+                                       FontSize="14" 
+                                       Foreground="#0369A1" 
+                                       Margin="0,0,0,10"/>
+                            <TextBlock FontSize="12" Foreground="#0369A1" Margin="0,0,0,5">
+                                <Run Text="• Appwrite 格式: "/>
+                                <Run Text="$id,name,price,photo,shop,todate,photohash,$createdAt,$updatedAt" FontFamily="Consolas"/>
+                            </TextBlock>
+                            <TextBlock FontSize="12" Foreground="#0369A1" Margin="0,0,0,5">
+                                <Run Text="• Supabase 格式: "/>
+                                <Run Text="id,created_at,name,todate,amount,photo,price,shop,photohash" FontFamily="Consolas"/>
+                            </TextBlock>
+                            <TextBlock Text="• 自動處理欄位映射、日期格式轉換和資料類型調整" 
+                                       FontSize="12" 
+                                       Foreground="#0369A1"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- 轉換操作 -->
+                    <StackPanel>
+                        <TextBlock Text="選擇 Appwrite CSV 檔案進行轉換：" 
+                                   FontWeight="Bold" 
+                                   FontSize="14" 
+                                   Margin="0,0,0,10"/>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <Button x:Name="ConvertFoodCsvButton" 
+                                    Content="🔄 轉換 Food CSV" 
+                                    Style="{StaticResource SaveButtonStyle}"
+                                    Background="#DC2626"
+                                    Margin="0,0,15,0"
+                                    Click="ConvertFoodCsv_Click"/>
+                            <Button x:Name="ConvertSubscriptionCsvButton" 
+                                    Content="🔄 轉換 Subscription CSV" 
+                                    Style="{StaticResource SaveButtonStyle}"
+                                    Background="#7C2D12"
+                                    Margin="0,0,15,0"
+                                    Click="ConvertSubscriptionCsv_Click"/>
+                        </StackPanel>
+                        
+                        <!-- 批次轉換 -->
+                        <Border Background="#FEF3C7" 
+                                BorderBrush="#F59E0B" 
+                                BorderThickness="1" 
+                                CornerRadius="8" 
+                                Padding="15" 
+                                Margin="0,10,0,0">
+                            <StackPanel>
+                                <TextBlock Text="📁 批次轉換" 
+                                           FontWeight="Bold" 
+                                           FontSize="14" 
+                                           Foreground="#92400E" 
+                                           Margin="0,0,0,10"/>
+                                <TextBlock Text="選擇包含多個 Appwrite CSV 檔案的資料夾進行批次轉換" 
+                                           FontSize="12" 
+                                           Foreground="#92400E" 
+                                           Margin="0,0,0,10"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button x:Name="BatchConvertButton" 
+                                            Content="📂 批次轉換資料夾" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            Background="#F59E0B"
+                                            Margin="0,0,10,0"
+                                            Click="BatchConvert_Click"/>
+                                    <Button x:Name="TestConverterButton" 
+                                            Content="🧪 測試轉換功能" 
+                                            Style="{StaticResource SaveButtonStyle}"
+                                            Background="#8B5CF6"
+                                            Click="TestConverter_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
                     <!-- 設定檔管理區域 -->
             <Border Style="{StaticResource SettingsCardStyle}">
                 <StackPanel>
